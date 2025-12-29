@@ -1,5 +1,0 @@
-/Users/manoj/Desktop/msaas/ratelimit-library/rl-adapter-quarkus/src/main/java/com/lycosoft/ratelimit/quarkus/config/RateLimitProducer.java
-/Users/manoj/Desktop/msaas/ratelimit-library/rl-adapter-quarkus/src/main/java/com/lycosoft/ratelimit/quarkus/interceptor/RateLimitInterceptor.java
-/Users/manoj/Desktop/msaas/ratelimit-library/rl-adapter-quarkus/src/main/java/com/lycosoft/ratelimit/quarkus/handler/RateLimitExceptionMapper.java
-/Users/manoj/Desktop/msaas/ratelimit-library/rl-adapter-quarkus/src/main/java/com/lycosoft/ratelimit/quarkus/annotation/RateLimits.java
-/Users/manoj/Desktop/msaas/ratelimit-library/rl-adapter-quarkus/src/main/java/com/lycosoft/ratelimit/quarkus/annotation/RateLimit.java

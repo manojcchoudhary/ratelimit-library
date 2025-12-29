@@ -1,9 +1,0 @@
-com/lycosoft/ratelimit/algorithm/SlidingWindowAlgorithmTest$VirtualClock.class
-com/lycosoft/ratelimit/algorithm/TokenBucketAlgorithmTest.class
-com/lycosoft/ratelimit/audit/SensitiveDataFilterTest.class
-com/lycosoft/ratelimit/algorithm/TokenBucketAlgorithmTest$VirtualClock.class
-com/lycosoft/ratelimit/engine/LimiterEngineTest.class
-com/lycosoft/ratelimit/algorithm/FixedWindowAlgorithmTest.class
-com/lycosoft/ratelimit/engine/LimiterEngineTest$BrokenStorageProvider.class
-com/lycosoft/ratelimit/algorithm/SlidingWindowAlgorithmTest.class
-com/lycosoft/ratelimit/security/VariableValidatorTest.class

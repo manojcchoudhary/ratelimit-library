@@ -1,6 +1,0 @@
-com/lycosoft/ratelimit/storage/redis/RedisRateLimitState.class
-com/lycosoft/ratelimit/storage/redis/VersionedLuaScriptManager.class
-com/lycosoft/ratelimit/storage/redis/VersionedLuaScriptManager$ScriptLoadException.class
-com/lycosoft/ratelimit/storage/redis/LuaScripts.class
-com/lycosoft/ratelimit/storage/redis/RedisStorageProvider$1.class
-com/lycosoft/ratelimit/storage/redis/RedisStorageProvider.class
