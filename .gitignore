@@ -116,3 +116,4 @@ docker-compose.override.yml
 *.jks
 *.p12
 *.pem
+.ai
