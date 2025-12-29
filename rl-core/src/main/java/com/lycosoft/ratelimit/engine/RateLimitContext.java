@@ -1,0 +1,125 @@
+package com.lycosoft.ratelimit.engine;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+
+/**
+ * Context object containing all information needed to resolve a rate limit key
+ * and make a rate limiting decision.
+ * 
+ * <p>This is an immutable value object that captures the current request state.
+ * 
+ * @since 1.0.0
+ */
+public final class RateLimitContext {
+    
+    private final String keyExpression;
+    private final Object principal;
+    private final String remoteAddress;
+    private final Object[] methodArguments;
+    private final Map<String, String> requestHeaders;
+    private final String methodSignature;
+    
+    private RateLimitContext(Builder builder) {
+        this.keyExpression = builder.keyExpression;
+        this.principal = builder.principal;
+        this.remoteAddress = builder.remoteAddress;
+        this.methodArguments = builder.methodArguments;
+        this.requestHeaders = builder.requestHeaders != null 
+            ? Collections.unmodifiableMap(builder.requestHeaders)
+            : Collections.emptyMap();
+        this.methodSignature = builder.methodSignature;
+    }
+    
+    public String getKeyExpression() {
+        return keyExpression;
+    }
+    
+    public Object getPrincipal() {
+        return principal;
+    }
+    
+    public String getRemoteAddress() {
+        return remoteAddress;
+    }
+    
+    public Object[] getMethodArguments() {
+        return methodArguments;
+    }
+    
+    public Map<String, String> getRequestHeaders() {
+        return requestHeaders;
+    }
+    
+    public String getMethodSignature() {
+        return methodSignature;
+    }
+    
+    public static Builder builder() {
+        return new Builder();
+    }
+    
+    public static class Builder {
+        private String keyExpression;
+        private Object principal;
+        private String remoteAddress;
+        private Object[] methodArguments;
+        private Map<String, String> requestHeaders;
+        private String methodSignature;
+        
+        public Builder keyExpression(String keyExpression) {
+            this.keyExpression = keyExpression;
+            return this;
+        }
+        
+        public Builder principal(Object principal) {
+            this.principal = principal;
+            return this;
+        }
+        
+        public Builder remoteAddress(String remoteAddress) {
+            this.remoteAddress = remoteAddress;
+            return this;
+        }
+        
+        public Builder methodArguments(Object[] methodArguments) {
+            this.methodArguments = methodArguments;
+            return this;
+        }
+        
+        public Builder requestHeaders(Map<String, String> requestHeaders) {
+            this.requestHeaders = requestHeaders;
+            return this;
+        }
+        
+        public Builder methodSignature(String methodSignature) {
+            this.methodSignature = methodSignature;
+            return this;
+        }
+        
+        public RateLimitContext build() {
+            Objects.requireNonNull(keyExpression, "keyExpression cannot be null");
+            
+            // Set defaults
+            if (methodArguments == null) {
+                methodArguments = new Object[0];
+            }
+            if (remoteAddress == null) {
+                remoteAddress = "unknown";
+            }
+            
+            return new RateLimitContext(this);
+        }
+    }
+    
+    @Override
+    public String toString() {
+        return "RateLimitContext{" +
+                "keyExpression='" + keyExpression + '\'' +
+                ", principal=" + principal +
+                ", remoteAddress='" + remoteAddress + '\'' +
+                ", methodSignature='" + methodSignature + '\'' +
+                '}';
+    }
+}

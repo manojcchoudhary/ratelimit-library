@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="a5be0ccd-7f87-439d-95d9-41c86af8f7e5" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
+  <component name="ProjectId" id="37OI7HKmmjFfw3RXkjgTUQBanrY" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "JUnit.SlidingWindowAlgorithmTest.executor": "Run",
+    "JUnit.SlidingWindowAlgorithmTest.shouldHandleSustainedLoad.executor": "Run",
+    "JUnit.SlidingWindowAlgorithmTest.shouldRotateWindowsCorrectly.executor": "Debug",
+    "JUnit.TokenBucketAlgorithmTest.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "com.google.cloudcode.ide_session_index": "20251229_0002",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/manoj/Desktop/msaas/ratelimit-library",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveInnerDialog.RECENTS_KEY">
+      <recent name="com.lycosoft.ratelimit.algorithm" />
+      <recent name="com.lycosoft.ratelimit.storage.caffeine" />
+      <recent name="com.lycosoft.ratelimit.spi" />
+      <recent name="com.lycosoft.ratelimit.storage.redis" />
+    </key>
+  </component>
+  <component name="RunManager" selected="JUnit.SlidingWindowAlgorithmTest.shouldHandleSustainedLoad">
+    <configuration name="SlidingWindowAlgorithmTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="rl-core" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.lycosoft.ratelimit.algorithm.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.lycosoft.ratelimit.algorithm" />
+      <option name="MAIN_CLASS_NAME" value="com.lycosoft.ratelimit.algorithm.SlidingWindowAlgorithmTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SlidingWindowAlgorithmTest.shouldHandleSustainedLoad" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="rl-core" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.lycosoft.ratelimit.algorithm.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.lycosoft.ratelimit.algorithm" />
+      <option name="MAIN_CLASS_NAME" value="com.lycosoft.ratelimit.algorithm.SlidingWindowAlgorithmTest" />
+      <option name="METHOD_NAME" value="shouldHandleSustainedLoad" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SlidingWindowAlgorithmTest.shouldRotateWindowsCorrectly" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="rl-core" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.lycosoft.ratelimit.algorithm.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.lycosoft.ratelimit.algorithm" />
+      <option name="MAIN_CLASS_NAME" value="com.lycosoft.ratelimit.algorithm.SlidingWindowAlgorithmTest" />
+      <option name="METHOD_NAME" value="shouldRotateWindowsCorrectly" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TokenBucketAlgorithmTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="rl-core" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.lycosoft.ratelimit.algorithm.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.lycosoft.ratelimit.algorithm" />
+      <option name="MAIN_CLASS_NAME" value="com.lycosoft.ratelimit.algorithm.TokenBucketAlgorithmTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RateLimitExampleApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="rl-example-spring-boot" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.lycosoft.ratelimit.example.springboot.RateLimitExampleApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.SlidingWindowAlgorithmTest.shouldHandleSustainedLoad" />
+        <item itemvalue="JUnit.SlidingWindowAlgorithmTest.shouldRotateWindowsCorrectly" />
+        <item itemvalue="JUnit.SlidingWindowAlgorithmTest" />
+        <item itemvalue="JUnit.TokenBucketAlgorithmTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-26cb7f24e5b0-intellij.indexing.shared.core-IU-253.29346.138" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.29346.138" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a5be0ccd-7f87-439d-95d9-41c86af8f7e5" name="Changes" comment="" />
+      <created>1766767522049</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1766767522049</updated>
+      <workItem from="1766767523262" duration="25131000" />
+      <workItem from="1766995884379" duration="352000" />
+      <workItem from="1766996268164" duration="1940000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="dependencySupport" implementationName="java:org.springframework.security:spring-security-core" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework:spring-core" />
+    <option featureType="dependencySupport" implementationName="executable:docker" />
+    <option featureType="dependencySupport" implementationName="java:jakarta.enterprise:jakarta.enterprise.cdi-api" />
+    <option featureType="dependencySupport" implementationName="java:io.quarkus:quarkus-core" />
+    <option featureType="dependencySupport" implementationName="java:io.smallrye.reactive:mutiny" />
+    <option featureType="dependencySupport" implementationName="executable:kubectl" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework.boot:spring-boot" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework:spring-webmvc" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/rl-core/src/test/java/com/lycosoft/ratelimit/algorithm/SlidingWindowAlgorithmTest.java</url>
+          <line>70</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/rl-core/src/test/java/com/lycosoft/ratelimit/algorithm/SlidingWindowAlgorithmTest.java</url>
+          <line>56</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

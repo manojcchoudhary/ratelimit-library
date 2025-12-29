@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: ratelimit-webflux-example
+
+server:
+  port: 8081
+
+logging:
+  level:
+    com.lycosoft.ratelimit: DEBUG
+    org.springframework.web: INFO

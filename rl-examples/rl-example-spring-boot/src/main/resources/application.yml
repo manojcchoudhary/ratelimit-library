@@ -1,0 +1,188 @@
+# Strategy 1: The "Simple Starter" (In-Memory)
+# Default configuration for single-node apps and local testing
+
+spring:
+  application:
+    name: ratelimit-example-spring-boot
+  
+  security:
+    user:
+      name: admin
+      password: admin
+
+server:
+  port: 8080
+
+# Rate Limiting Configuration - In-Memory Storage
+ratelimit:
+  enabled: true
+  
+  # SpEL compilation for performance
+  spel:
+    compiler-mode: IMMEDIATE
+    cache-size: 1000
+  
+  # Trusted proxy configuration
+  proxy:
+    trusted-hops: 1
+    trusted-proxies:
+      - "127.0.0.0/8"     # Localhost
+      - "10.0.0.0/8"      # Internal network
+
+# Actuator for metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+# Logging
+logging:
+  level:
+    com.lycosoft.ratelimit: DEBUG
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+---
+# Profile: redis (Strategy 2: The "Scale-Out")
+spring:
+  config:
+    activate:
+      on-profile: redis
+  
+  # Redis configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+
+# Rate Limiting with Redis
+ratelimit:
+  enabled: true
+  
+  storage:
+    type: REDIS
+  
+  spel:
+    compiler-mode: IMMEDIATE
+  
+  proxy:
+    trusted-hops: 2
+    trusted-proxies:
+      - "104.16.0.0/12"   # Cloudflare
+      - "10.0.0.0/8"      # Internal
+
+logging:
+  level:
+    com.lycosoft.ratelimit: INFO
+
+---
+# Profile: resilient (Strategy 3: The "Resilient" Fail-Open)
+spring:
+  config:
+    activate:
+      on-profile: resilient
+  
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 500ms      # Short timeout to trigger failures
+
+# Rate Limiting with Fail-Open Strategy
+ratelimit:
+  enabled: true
+  
+  storage:
+    type: TIERED         # Use tiered storage (Redis L1, Caffeine L2)
+  
+  fail:
+    strategy: OPEN       # Allow traffic if storage fails
+  
+  # Circuit breaker configuration
+  circuit-breaker:
+    failure-threshold: 0.5     # 50% failure rate
+    timeout-seconds: 30        # 30 second recovery window
+  
+  spel:
+    compiler-mode: IMMEDIATE
+
+logging:
+  level:
+    com.lycosoft.ratelimit: DEBUG
+    com.lycosoft.ratelimit.storage: TRACE
+
+---
+# Profile: production (Production-ready configuration)
+spring:
+  config:
+    activate:
+      on-profile: production
+  
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+
+ratelimit:
+  enabled: true
+  
+  storage:
+    type: TIERED
+  
+  fail:
+    strategy: OPEN
+  
+  spel:
+    compiler-mode: IMMEDIATE
+    cache-size: 5000
+  
+  proxy:
+    trusted-hops: 3      # Cloudflare + ALB + Internal
+    trusted-proxies:
+      - "104.16.0.0/12"
+      - "35.156.0.0/14"
+      - "10.0.0.0/8"
+  
+  throttling:
+    enabled: true
+    soft-limit: 85
+    max-delay-ms: 3000
+    strategy: EXPONENTIAL
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    com.lycosoft.ratelimit: INFO
+    root: WARN
