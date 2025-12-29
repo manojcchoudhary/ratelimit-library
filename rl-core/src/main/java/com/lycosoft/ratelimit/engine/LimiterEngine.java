@@ -116,7 +116,7 @@ public class LimiterEngine {
             return decision;
             
         } catch (Exception e) {
-            logger.error("Error during rate limit check for limiter: " + config.getName(), e);
+            logger.error("Error during rate limit check for limiter: {}", config.getName(), e);
             metricsExporter.recordError(config.getName(), e);
             
             // Audit log system failure

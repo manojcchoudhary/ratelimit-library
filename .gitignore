@@ -1,0 +1,118 @@
+# ======================
+# Java / JVM
+# ======================
+*.class
+*.log
+hs_err_pid*
+
+# JVM crash dumps
+replay_pid*
+core.*
+
+# ======================
+# Build tools
+# ======================
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# ======================
+# Multi-module safety
+# ======================
+**/target/
+**/build/
+
+# ======================
+# IDEs
+# ======================
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Eclipse
+.project
+.classpath
+.settings/
+.factorypath
+
+# ======================
+# OS junk
+# ======================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ======================
+# Spring / Quarkus
+# ======================
+application-local.yml
+application-local.yaml
+application-dev.yml
+application-dev.yaml
+.env
+.env.*
+
+# Quarkus
+.quarkus/
+quarkus.log
+
+# ======================
+# Logs & temp
+# ======================
+logs/
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# ======================
+# Test artifacts
+# ======================
+coverage/
+jacoco.exec
+*.exec
+
+# ======================
+# Docker
+# ======================
+docker-compose.override.yml
+
+# ======================
+# Secrets (just in case)
+# ======================
+*.keystore
+*.jks
+*.p12
+*.pem

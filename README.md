@@ -1,6 +1,6 @@
 # Rate Limiting Library
 
-A production-ready, high-performance rate limiting library for Java applications with support for Spring Boot and Quarkus.
+A production-grade, high-performance rate limiting library for Java applications with support for Spring Boot and Quarkus.
 
 [![Java](https://img.shields.io/badge/Java-17+-blue.svg)](https://openjdk.java.net/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -207,4 +207,4 @@ This project is licensed under the Apache License 2.0.
 
 ---
 
-**Built with ❤️ for high-performance, production-ready rate limiting**
+**Built with ❤️ for high-performance, production-grade rate limiting**
