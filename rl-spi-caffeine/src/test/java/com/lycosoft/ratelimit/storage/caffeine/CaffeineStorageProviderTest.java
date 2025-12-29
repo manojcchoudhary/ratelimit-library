@@ -394,19 +394,25 @@ class CaffeineStorageProviderTest {
 
     @Test
     void shouldHandleZeroCapacity() {
+        // Note: Builder auto-calculates capacity=requests when capacity=0
+        // This tests that the auto-calculation works correctly
         RateLimitConfig zeroCapacity = RateLimitConfig.builder()
             .name("zero-cap")
             .algorithm(RateLimitConfig.Algorithm.TOKEN_BUCKET)
             .requests(1)
             .window(1)
             .windowUnit(TimeUnit.SECONDS)
-            .capacity(0)
-            .refillRate(0.0)
+            .capacity(0)  // Builder will set this to requests=1
+            .refillRate(0.0)  // Builder will auto-calculate
             .build();
 
-        // All requests should be denied with 0 capacity
+        // First request allowed (capacity auto-set to 1)
         boolean allowed = provider.tryAcquire("zero-key", zeroCapacity, System.currentTimeMillis());
-        assertThat(allowed).isFalse();
+        assertThat(allowed).isTrue();
+
+        // Second request denied (capacity exhausted)
+        boolean denied = provider.tryAcquire("zero-key", zeroCapacity, System.currentTimeMillis());
+        assertThat(denied).isFalse();
     }
 
     @Test
