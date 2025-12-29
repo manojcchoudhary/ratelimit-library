@@ -150,16 +150,19 @@ public class JitteredCircuitBreaker {
     private <T> T handleOpenState(Callable<T> operation) throws Exception {
         long elapsed = System.currentTimeMillis() - lastFailureTime.get();
         long jitteredTimeout = calculateJitteredTimeout();
-        
+
         if (elapsed > jitteredTimeout) {
             // Transition to HALF_OPEN with jitter
             if (state.compareAndSet(State.OPEN, State.HALF_OPEN)) {
-                logger.info("Circuit transitioning to HALF_OPEN after {}ms (jittered timeout: {}ms)", 
+                logger.info("Circuit transitioning to HALF_OPEN after {}ms (jittered timeout: {}ms)",
                            elapsed, jitteredTimeout);
+            }
+            // Either we transitioned to HALF_OPEN, or another thread did - proceed with probe
+            if (state.get() == State.HALF_OPEN) {
                 return handleHalfOpenState(operation);
             }
         }
-        
+
         // Circuit still open - reject request
         throw new CircuitBreakerOpenException(
             "Circuit breaker is OPEN (elapsed: " + elapsed + "ms, timeout: " + jitteredTimeout + "ms)"
