@@ -5,6 +5,7 @@ A production-grade, high-performance rate limiting library for Java applications
 [![Java](https://img.shields.io/badge/Java-17+-blue.svg)](https://openjdk.java.net/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen.svg)]()
+![Build](https://github.com/manojcchoudhary/ratelimit-library/actions/workflows/build-badge.yml/badge.svg)
 
 ## 🚀 Features
 
