@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * In-memory implementation of {@link StorageProvider}.
@@ -52,15 +53,17 @@ public class InMemoryStorageProvider implements StorageProvider {
             config.getCapacity(),
             config.getRefillRate()
         );
-        
-        TokenBucketAlgorithm.BucketState oldState = tokenBucketStates.get(key);
-        TokenBucketAlgorithm.BucketState newState = algorithm.tryConsume(oldState, 1, currentTime);
-        
-        if (newState.allowed()) {
-            tokenBucketStates.put(key, newState);
-        }
-        
-        return newState.allowed();
+
+        // Use atomic compute() to prevent race conditions (TOCTOU)
+        // Always update state to track refill time correctly, regardless of allow/deny
+        AtomicBoolean allowed = new AtomicBoolean(false);
+        tokenBucketStates.compute(key, (k, oldState) -> {
+            TokenBucketAlgorithm.BucketState newState = algorithm.tryConsume(oldState, 1, currentTime);
+            allowed.set(newState.allowed());
+            return newState;  // Always persist state for correct refill tracking
+        });
+
+        return allowed.get();
     }
     
     private boolean tryAcquireSlidingWindow(String key, RateLimitConfig config, long currentTime) {
@@ -68,15 +71,17 @@ public class InMemoryStorageProvider implements StorageProvider {
             config.getRequests(),
             config.getWindowMillis()
         );
-        
-        SlidingWindowAlgorithm.WindowState oldState = slidingWindowStates.get(key);
-        SlidingWindowAlgorithm.WindowState newState = algorithm.tryConsume(oldState, currentTime);
-        
-        if (newState.isAllowed()) {
-            slidingWindowStates.put(key, newState);
-        }
-        
-        return newState.isAllowed();
+
+        // Use atomic compute() to prevent race conditions (TOCTOU)
+        // Always update state to track window rotation correctly, regardless of allow/deny
+        AtomicBoolean allowed = new AtomicBoolean(false);
+        slidingWindowStates.compute(key, (k, oldState) -> {
+            SlidingWindowAlgorithm.WindowState newState = algorithm.tryConsume(oldState, currentTime);
+            allowed.set(newState.isAllowed());
+            return newState;  // Always persist state for correct window tracking
+        });
+
+        return allowed.get();
     }
     
     @Override

@@ -58,8 +58,23 @@ public class OptimizedSpELKeyResolver implements KeyResolver {
      * would parse and compile the SpEL expression (~80μs overhead).
      */
     private final ConcurrentHashMap<String, Expression> expressionCache;
-    
+
     private final int maxCacheSize;
+
+    /**
+     * Maximum allowed SpEL expression length to prevent DoS attacks.
+     * Long or complex expressions can cause:
+     * - ReDoS (Regular Expression Denial of Service)
+     * - Memory exhaustion during parsing/compilation
+     * - CPU exhaustion during evaluation
+     */
+    private static final int MAX_EXPRESSION_LENGTH = 500;
+
+    /**
+     * Maximum allowed nesting depth in SpEL expressions.
+     * Deeply nested expressions can cause stack overflows.
+     */
+    private static final int MAX_NESTING_DEPTH = 10;
     
     /**
      * Creates an optimized SpEL key resolver with default settings.
@@ -97,22 +112,73 @@ public class OptimizedSpELKeyResolver implements KeyResolver {
     @Override
     public String resolveKey(RateLimitContext context) {
         String keyExpression = context.getKeyExpression();
-        
+
         if (keyExpression == null || keyExpression.isEmpty()) {
             logger.warn("Empty key expression, using default: 'global'");
             return "global";
         }
-        
+
+        // SECURITY: Validate expression length to prevent DoS
+        validateExpressionSecurity(keyExpression);
+
         // FAST PATH: Static key (no SpEL)
         // This is critical for performance - most keys are static
         if (!containsSpEL(keyExpression)) {
             logger.trace("Static key detected: {}", keyExpression);
             return keyExpression;
         }
-        
+
         // SLOW PATH: SpEL expression
         // But still fast due to compilation + caching (~2μs)
         return evaluateSpEL(keyExpression, context);
+    }
+
+    /**
+     * Validates SpEL expression for security constraints.
+     *
+     * @param expression the expression to validate
+     * @throws KeyResolutionException if validation fails
+     */
+    private void validateExpressionSecurity(String expression) {
+        // Check expression length
+        if (expression.length() > MAX_EXPRESSION_LENGTH) {
+            logger.warn("SpEL expression exceeds maximum length: {} > {}",
+                    expression.length(), MAX_EXPRESSION_LENGTH);
+            throw new KeyResolutionException(
+                "SpEL expression too long (max " + MAX_EXPRESSION_LENGTH + " chars)", null);
+        }
+
+        // Check nesting depth (count parentheses, brackets, braces)
+        int depth = 0;
+        int maxDepth = 0;
+        for (char c : expression.toCharArray()) {
+            if (c == '(' || c == '[' || c == '{') {
+                depth++;
+                maxDepth = Math.max(maxDepth, depth);
+            } else if (c == ')' || c == ']' || c == '}') {
+                depth--;
+            }
+        }
+
+        if (maxDepth > MAX_NESTING_DEPTH) {
+            logger.warn("SpEL expression exceeds maximum nesting depth: {} > {}",
+                    maxDepth, MAX_NESTING_DEPTH);
+            throw new KeyResolutionException(
+                "SpEL expression too deeply nested (max " + MAX_NESTING_DEPTH + " levels)", null);
+        }
+
+        // Check for dangerous patterns not caught by SimpleEvaluationContext
+        String lowerExpr = expression.toLowerCase();
+        if (lowerExpr.contains("t(") || expression.contains("T(") ||
+            lowerExpr.contains("new ") ||
+            lowerExpr.contains("getclass") ||
+            lowerExpr.contains("forname") ||
+            lowerExpr.contains("classloader")) {
+            logger.warn("SpEL expression contains potentially dangerous pattern: {}",
+                    expression.substring(0, Math.min(50, expression.length())));
+            throw new KeyResolutionException(
+                "SpEL expression contains forbidden constructs", null);
+        }
     }
     
     /**

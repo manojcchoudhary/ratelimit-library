@@ -116,13 +116,19 @@ public class RateLimitAspect {
     
     /**
      * Checks all rate limits for the method invocation.
-     * 
+     *
      * @param joinPoint the join point
      * @param rateLimits the list of rate limit annotations
      * @return the method result
      * @throws Throwable if the method execution fails or rate limit exceeded
+     * @throws IllegalArgumentException if rateLimits is null or empty
      */
     private Object checkRateLimits(ProceedingJoinPoint joinPoint, List<RateLimit> rateLimits) throws Throwable {
+        // Validate input to prevent NPE
+        if (rateLimits == null || rateLimits.isEmpty()) {
+            throw new IllegalArgumentException("rateLimits cannot be null or empty");
+        }
+
         // Build context from current request
         RateLimitContext context = buildContext(joinPoint);
         
@@ -224,25 +230,35 @@ public class RateLimitAspect {
     
     /**
      * Gets the client IP address using trusted proxy resolution.
-     * Falls back to IpAddressUtils if proxy resolver is not properly configured.
-     * 
+     *
+     * <p><b>Security Note:</b> This method exclusively uses the hop-counting
+     * TrustedProxyResolver for secure IP resolution. The previous fallback to
+     * IpAddressUtils was removed to prevent IP spoofing attacks where attackers
+     * could bypass rate limits by setting custom proxy headers.
+     *
+     * <p>If the resolved IP appears incorrect, configure the trusted proxy
+     * settings properly via {@code ratelimit.proxy.trusted-hops} and
+     * {@code ratelimit.proxy.trusted-proxies} properties.
+     *
      * @param request the HTTP request
      * @return the client IP address
      */
     private String getClientIpAddress(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         String remoteAddr = request.getRemoteAddr();
-        
+
         // Use trusted proxy resolver for hop counting (secure method)
+        // SECURITY: Do NOT fall back to IpAddressUtils - it enables IP spoofing attacks
         String resolvedIp = proxyResolver.resolveClientIp(xForwardedFor, remoteAddr);
-        
-        // If proxy resolver returns remote address unchanged and we have proxy headers,
-        // fall back to IpAddressUtils for better header detection
+
+        // Log warning if proxy headers exist but resolver returns remote address
+        // This may indicate misconfigured trusted proxy settings
         if (resolvedIp.equals(remoteAddr) && xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            // Fallback to comprehensive header checking
-            return IpAddressUtils.getClientIpAddress(request);
+            logger.debug("TrustedProxyResolver returned remoteAddr despite X-Forwarded-For header. " +
+                    "Check ratelimit.proxy.trusted-hops and ratelimit.proxy.trusted-proxies configuration. " +
+                    "remoteAddr={}, X-Forwarded-For=present", remoteAddr);
         }
-        
+
         return resolvedIp;
     }
     
@@ -284,19 +300,39 @@ public class RateLimitAspect {
     
     /**
      * Applies adaptive throttling delay.
-     * 
-     * <p>WARNING: This uses Thread.sleep() which can lead to thread pool exhaustion
-     * in high-traffic scenarios. For production use with high concurrency, consider
-     * using reactive/async delays instead (e.g., with Spring WebFlux).
-     * 
+     *
+     * <p><b>CRITICAL PERFORMANCE WARNING:</b> This method uses {@code Thread.sleep()}
+     * which blocks the current servlet container thread. In high-traffic scenarios,
+     * this can lead to:
+     * <ul>
+     *   <li><b>Thread pool exhaustion:</b> Blocked threads cannot serve other requests</li>
+     *   <li><b>Cascading failures:</b> Request queue backup can overwhelm the system</li>
+     *   <li><b>Increased latency:</b> All requests experience added delay</li>
+     * </ul>
+     *
+     * <p><b>Production recommendations:</b>
+     * <ul>
+     *   <li>For high concurrency (&gt;100 RPS): Use Spring WebFlux with reactive delays</li>
+     *   <li>Consider returning 429 with Retry-After header instead of blocking</li>
+     *   <li>Monitor thread pool utilization when adaptive throttling is enabled</li>
+     *   <li>Set conservative maxDelayMs values (e.g., 100-500ms max)</li>
+     * </ul>
+     *
      * @param delayMs delay in milliseconds
      * @param limiterName the limiter name (for logging)
      * @since 1.1.0
      */
     private void applyAdaptiveDelay(long delayMs, String limiterName) {
+        // Log at INFO level to ensure visibility of throttling in production
+        if (delayMs > 100) {
+            logger.info("Applying significant adaptive throttle delay: {}ms for limiter '{}' " +
+                    "(WARNING: may cause thread pool pressure)", delayMs, limiterName);
+        } else {
+            logger.debug("Applying adaptive throttle delay: {}ms for limiter '{}'",
+                    delayMs, limiterName);
+        }
+
         try {
-            logger.debug("Applying adaptive throttle delay: {}ms for limiter '{}'", 
-                        delayMs, limiterName);
             Thread.sleep(delayMs);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
