@@ -208,17 +208,61 @@ public class RateLimitProblemDetail {
     }
     
     /**
-     * Escapes special characters in JSON strings.
+     * Escapes special characters in JSON strings according to RFC 8259.
+     *
+     * <p>Escapes all control characters and special JSON characters:
+     * <ul>
+     *   <li>Backslash (\)</li>
+     *   <li>Double quote (")</li>
+     *   <li>Newline (\n)</li>
+     *   <li>Carriage return (\r)</li>
+     *   <li>Tab (\t)</li>
+     *   <li>Backspace (\b)</li>
+     *   <li>Form feed (\f)</li>
+     *   <li>Control characters (U+0000 to U+001F)</li>
+     * </ul>
      */
     private String escapeJson(String str) {
         if (str == null) {
             return null;
         }
-        return str.replace("\\", "\\\\")
-                  .replace("\"", "\\\"")
-                  .replace("\n", "\\n")
-                  .replace("\r", "\\r")
-                  .replace("\t", "\\t");
+
+        StringBuilder escaped = new StringBuilder(str.length() + 16);
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            switch (c) {
+                case '\\':
+                    escaped.append("\\\\");
+                    break;
+                case '"':
+                    escaped.append("\\\"");
+                    break;
+                case '\n':
+                    escaped.append("\\n");
+                    break;
+                case '\r':
+                    escaped.append("\\r");
+                    break;
+                case '\t':
+                    escaped.append("\\t");
+                    break;
+                case '\b':
+                    escaped.append("\\b");
+                    break;
+                case '\f':
+                    escaped.append("\\f");
+                    break;
+                default:
+                    // Escape control characters (U+0000 to U+001F)
+                    if (c < 0x20) {
+                        escaped.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        escaped.append(c);
+                    }
+                    break;
+            }
+        }
+        return escaped.toString();
     }
     
     /**

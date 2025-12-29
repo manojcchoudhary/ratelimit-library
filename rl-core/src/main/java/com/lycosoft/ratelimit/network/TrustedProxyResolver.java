@@ -161,23 +161,51 @@ public class TrustedProxyResolver {
     }
     
     /**
-     * Parses X-Forwarded-For header into list of IP addresses.
-     * 
+     * Parses X-Forwarded-For header into list of valid IP addresses.
+     *
+     * <p><b>Security:</b> Each IP is validated using {@link InetAddress#getByName(String)}
+     * to prevent malformed IPs from being returned as client IPs.
+     *
      * @param xForwardedFor the header value
-     * @return list of IP addresses (trimmed, whitespace removed)
+     * @return list of valid IP addresses (trimmed, whitespace removed, validated)
      */
     private List<String> parseXForwardedFor(String xForwardedFor) {
         List<String> ips = new ArrayList<>();
-        
+
         String[] parts = xForwardedFor.split(",");
         for (String part : parts) {
             String ip = part.trim();
             if (!ip.isEmpty()) {
-                ips.add(ip);
+                // SECURITY: Validate each IP before adding to prevent malformed IPs
+                if (isValidIpAddress(ip)) {
+                    ips.add(ip);
+                } else {
+                    logger.warn("Invalid IP address in X-Forwarded-For header: '{}', skipping",
+                            ip.length() > 50 ? ip.substring(0, 50) + "..." : ip);
+                }
             }
         }
-        
+
         return ips;
+    }
+
+    /**
+     * Validates an IP address string.
+     *
+     * @param ip the IP address to validate
+     * @return true if valid, false otherwise
+     */
+    private boolean isValidIpAddress(String ip) {
+        if (ip == null || ip.isEmpty() || ip.length() > 45) { // Max IPv6 length
+            return false;
+        }
+
+        try {
+            InetAddress.getByName(ip);
+            return true;
+        } catch (UnknownHostException e) {
+            return false;
+        }
     }
     
     /**

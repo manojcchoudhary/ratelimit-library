@@ -208,9 +208,9 @@ public class OptimizedSpELKeyResolver implements KeyResolver {
         );
         
         // Evict old entries if cache is too large (simple LRU)
+        // Thread-safe check: only one thread will perform eviction
         if (expressionCache.size() > maxCacheSize) {
-            logger.debug("Expression cache size exceeded {}, clearing old entries", maxCacheSize);
-            evictOldestEntries();
+            evictOldestEntriesIfNeeded();
         }
         
         // Create secure evaluation context
@@ -302,19 +302,30 @@ public class OptimizedSpELKeyResolver implements KeyResolver {
     
     /**
      * Evicts oldest entries from the cache to prevent unbounded growth.
-     * 
+     *
+     * <p><b>Thread Safety:</b> This method is synchronized to prevent multiple
+     * threads from performing eviction simultaneously, which could cause
+     * over-eviction or race conditions.
+     *
      * <p>Simple strategy: clear half the cache when size exceeded.
-     * For production, consider using Caffeine for proper LRU eviction.
+     * For production with high concurrency, consider using Caffeine for proper LRU eviction.
      */
-    private void evictOldestEntries() {
+    private synchronized void evictOldestEntriesIfNeeded() {
+        // Double-check inside synchronized block (another thread may have evicted)
+        if (expressionCache.size() <= maxCacheSize) {
+            return;
+        }
+
+        logger.debug("Expression cache size exceeded {}, clearing old entries", maxCacheSize);
+
         int targetSize = maxCacheSize / 2;
         int toRemove = expressionCache.size() - targetSize;
-        
+
         if (toRemove > 0) {
             expressionCache.keySet().stream()
                 .limit(toRemove)
                 .forEach(expressionCache::remove);
-            
+
             logger.debug("Evicted {} expression cache entries", toRemove);
         }
     }
