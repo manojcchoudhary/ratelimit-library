@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rate Limiting Library | Production-Grade Java Rate Limiter</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap"
+            rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+    />
+
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        mono: ["Fira Code", "monospace"],
+                    },
+                    colors: {
+                        brand: {
+                            50: "#f0f9ff",
+                            100: "#e0f2fe",
+                            500: "#0ea5e9",
+                            600: "#0284c7",
+                            900: "#0c4a6e",
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style>
+        /* Custom scrollbar for code blocks */
+        pre::-webkit-scrollbar {
+            height: 8px;
+        }
+        pre::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        pre::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+        .blob {
+            position: absolute;
+            filter: blur(40px);
+            z-index: -1;
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body
+        class="bg-slate-50 text-slate-800 antialiased relative overflow-x-hidden"
+>
+<div
+        class="blob bg-blue-300 w-96 h-96 rounded-full top-0 left-0 -translate-x-1/2 -translate-y-1/2"
+></div>
+<div
+        class="blob bg-purple-300 w-96 h-96 rounded-full top-0 right-0 translate-x-1/3 -translate-y-1/4"
+></div>
+
+<nav
+        class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200"
+>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16 items-center">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-brand-600 text-2xl"></i>
+                <span class="font-bold text-xl tracking-tight text-slate-900"
+                >RateLimit<span class="text-brand-600">Library</span></span
+                >
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a
+                        href="#features"
+                        class="text-slate-600 hover:text-brand-600 transition"
+                >Features</a
+                >
+                <a
+                        href="#quickstart"
+                        class="text-slate-600 hover:text-brand-600 transition"
+                >Quick Start</a
+                >
+                <a
+                        href="#usage"
+                        class="text-slate-600 hover:text-brand-600 transition"
+                >Examples</a
+                >
+                <a
+                        href="https://github.com/manojcchoudhary/ratelimit-library"
+                        target="_blank"
+                        class="text-slate-900 hover:text-brand-600 transition"
+                >
+                    <i class="fa-brands fa-github text-lg"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<section class="pt-20 pb-16 px-4 text-center max-w-5xl mx-auto">
+    <div
+            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-600 text-sm font-medium mb-6 border border-brand-100"
+    >
+        <span class="relative flex h-2 w-2">
+          <span
+                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"
+          ></span>
+          <span
+                  class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"
+          ></span>
+        </span>
+        v0.1.0-alpha Available
+    </div>
+
+    <h1
+            class="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6"
+    >
+        Production-Grade <br class="hidden md:block" />
+        <span
+                class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600"
+        >Rate Limiting for Java</span
+        >
+    </h1>
+
+    <p
+            class="text-lg md:text-xl text-slate-600 mb-8 max-w-3xl mx-auto leading-relaxed"
+    >
+        A high-performance library for Spring Boot and Quarkus. Distributed,
+        resilient, and ready for massive scale with Redis and Lua support.
+    </p>
+
+    <div class="flex flex-wrap justify-center gap-4 mb-10">
+        <a
+                href="#quickstart"
+                class="bg-brand-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-500/30 flex items-center gap-2"
+        >
+            <i class="fa-solid fa-bolt"></i> Get Started
+        </a>
+        <a
+                href="https://github.com/manojcchoudhary/ratelimit-library"
+                target="_blank"
+                class="bg-white text-slate-700 border border-slate-300 px-8 py-3 rounded-lg font-semibold hover:bg-slate-50 transition flex items-center gap-2"
+        >
+            <i class="fa-brands fa-github"></i> View on GitHub
+        </a>
+    </div>
+
+    <div class="flex justify-center gap-3 opacity-90">
+        <img
+                src="https://img.shields.io/badge/Java-17+-blue.svg?style=flat-square&logo=java"
+                alt="Java 17+"
+        />
+        <img
+                src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square"
+                alt="License"
+        />
+        <img
+                src="https://img.shields.io/badge/build-passing-brightgreen?style=flat-square"
+                alt="Build"
+        />
+    </div>
+</section>
+
+<section id="features" class="py-16 bg-white border-y border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-slate-900 mb-4">
+                Engineered for Performance
+            </h2>
+            <p class="text-slate-600">
+                Built to handle high throughput with minimal overhead.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div
+                    class="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition"
+            >
+                <div
+                        class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-4"
+                >
+                    <i class="fa-solid fa-microchip text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">
+                    High Performance
+                </h3>
+                <p class="text-slate-600 text-sm">
+                    O(1) algorithms with &lt;500μs local overhead and &lt;2ms
+                    distributed overhead.
+                </p>
+            </div>
+
+            <div
+                    class="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition"
+            >
+                <div
+                        class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-green-600 mb-4"
+                >
+                    <i class="fa-brands fa-envira text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">
+                    Spring & Quarkus
+                </h3>
+                <p class="text-slate-600 text-sm">
+                    Zero-config annotation support for Spring Boot and CDI
+                    interceptors for Quarkus.
+                </p>
+            </div>
+
+            <div
+                    class="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition"
+            >
+                <div
+                        class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 mb-4"
+                >
+                    <i class="fa-solid fa-server text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">
+                    Distributed Storage
+                </h3>
+                <p class="text-slate-600 text-sm">
+                    Redis support with atomic Lua scripts, version verification, and
+                    automatic reload.
+                </p>
+            </div>
+
+            <div
+                    class="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition"
+            >
+                <div
+                        class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 mb-4"
+                >
+                    <i class="fa-solid fa-layer-group text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">
+                    Production Resilient
+                </h3>
+                <p class="text-slate-600 text-sm">
+                    Circuit breakers, L1/L2 tiered storage, and CAP-aware mode
+                    switching.
+                </p>
+            </div>
+
+            <div
+                    class="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition"
+            >
+                <div
+                        class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600 mb-4"
+                >
+                    <i class="fa-solid fa-lock text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">
+                    Security Hardened
+                </h3>
+                <p class="text-slate-600 text-sm">
+                    SpEL injection prevention, ClassLoader blocking, and PII
+                    protection.
+                </p>
+            </div>
+
+            <div
+                    class="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition"
+            >
+                <div
+                        class="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center text-cyan-600 mb-4"
+                >
+                    <i class="fa-solid fa-chart-line text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">Observability</h3>
+                <p class="text-slate-600 text-sm">
+                    Built-in Prometheus metrics, async audit logging, and circuit
+                    state monitoring.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-16 bg-slate-50">
+    <div class="max-w-4xl mx-auto px-4">
+        <h2 class="text-2xl font-bold text-slate-900 mb-8 text-center">
+            Modular Architecture
+        </h2>
+        <div
+                class="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200"
+        >
+            <table class="w-full text-left border-collapse">
+                <thead>
+                <tr
+                        class="bg-slate-50 text-slate-600 text-sm uppercase tracking-wider border-b border-slate-200"
+                >
+                    <th class="p-4 font-semibold">Module</th>
+                    <th class="p-4 font-semibold">Description</th>
+                    <th class="p-4 font-semibold">Size</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                <tr>
+                    <td class="p-4 font-mono text-brand-600">rl-core</td>
+                    <td class="p-4">Core algorithms, SPIs, security, resilience</td>
+                    <td class="p-4 text-slate-500">~2,100 LOC</td>
+                </tr>
+                <tr>
+                    <td class="p-4 font-mono text-brand-600">rl-spi-redis</td>
+                    <td class="p-4">Redis storage with versioned Lua scripts</td>
+                    <td class="p-4 text-slate-500">~570 LOC</td>
+                </tr>
+                <tr>
+                    <td class="p-4 font-mono text-brand-600">rl-spi-caffeine</td>
+                    <td class="p-4">High-performance in-memory storage</td>
+                    <td class="p-4 text-slate-500">~280 LOC</td>
+                </tr>
+                <tr>
+                    <td class="p-4 font-mono text-brand-600">rl-adapter-spring</td>
+                    <td class="p-4">Spring Boot integration with AOP</td>
+                    <td class="p-4 text-slate-500">~1,093 LOC</td>
+                </tr>
+                <tr>
+                    <td class="p-4 font-mono text-brand-600">rl-adapter-quarkus</td>
+                    <td class="p-4">Quarkus CDI integration</td>
+                    <td class="p-4 text-slate-500">~562 LOC</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="text-center text-slate-500 text-sm mt-4">
+            Total: ~7,400 lines of production code
+        </p>
+    </div>
+</section>
+
+<section id="quickstart" class="py-16 bg-white">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+        <h2 class="text-3xl font-bold text-slate-900 mb-2">Quick Start</h2>
+        <p class="text-slate-600 mb-8">
+            Get up and running in less than 2 minutes.
+        </p>
+
+        <div class="flex border-b border-slate-200 mb-6">
+            <button
+                    onclick="switchTab('spring')"
+                    id="tab-spring"
+                    class="px-6 py-3 font-medium text-brand-600 border-b-2 border-brand-600 transition-colors focus:outline-none"
+            >
+                <i class="fa-brands fa-java mr-2"></i>Spring Boot
+            </button>
+            <button
+                    onclick="switchTab('quarkus')"
+                    id="tab-quarkus"
+                    class="px-6 py-3 font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition-colors focus:outline-none"
+            >
+                <i class="fa-solid fa-rocket mr-2"></i>Quarkus
+            </button>
+        </div>
+
+        <div id="content-spring" class="block">
+            <div class="space-y-6">
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-2">
+                        1. Add Dependency
+                    </h4>
+                    <div class="rounded-lg overflow-hidden shadow-lg">
+                <pre
+                        class="line-numbers"
+                ><code class="language-xml">&lt;dependency&gt;
+    &lt;groupId&gt;com.lycosoft&lt;/groupId&gt;
+    &lt;artifactId&gt;rl-adapter-spring&lt;/artifactId&gt;
+    &lt;version&gt;0.1.0-alpha&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-2">
+                        2. Use the Annotation
+                    </h4>
+                    <div class="rounded-lg overflow-hidden shadow-lg">
+                <pre
+                        class="line-numbers"
+                ><code class="language-java">@RestController
+public class OrderController {
+
+    // Allow 100 requests per 60 seconds
+    @RateLimit(requests = 100, window = 60)
+    @GetMapping("/orders")
+    public List&lt;Order&gt; getOrders() {
+        return orderService.findAll();
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-quarkus" class="hidden">
+            <div class="space-y-6">
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-2">
+                        1. Add Dependency
+                    </h4>
+                    <div class="rounded-lg overflow-hidden shadow-lg">
+                <pre
+                        class="line-numbers"
+                ><code class="language-xml">&lt;dependency&gt;
+    &lt;groupId&gt;com.lycosoft&lt;/groupId&gt;
+    &lt;artifactId&gt;rl-adapter-quarkus&lt;/artifactId&gt;
+    &lt;version&gt;0.1.0-alpha&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-2">
+                        2. Use the Annotation
+                    </h4>
+                    <div class="rounded-lg overflow-hidden shadow-lg">
+                <pre
+                        class="line-numbers"
+                ><code class="language-java">@Path("/orders")
+public class OrderResource {
+
+    // Allow 100 requests per 60 seconds
+    @RateLimit(requests = 100, window = 60)
+    @GET
+    public List&lt;Order&gt; getOrders() {
+        return orderService.findAll();
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="usage" class="py-16 bg-slate-50 border-t border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        <h2 class="text-3xl font-bold text-slate-900 mb-8 text-center">
+            Advanced Usage Patterns
+        </h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div
+                    class="bg-white p-6 rounded-xl shadow-sm border border-slate-200"
+            >
+                <h3
+                        class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2"
+                >
+                    <i class="fa-solid fa-user-tag text-purple-600"></i> Per-User
+                    Limits (SpEL)
+                </h3>
+                <div class="rounded-lg overflow-hidden text-sm">
+              <pre><code class="language-java">@RateLimit(
+    key = "#user.id",
+    requests = 100,
+    window = 60
+)
+@PostMapping("/api/orders")
+public Order createOrder(
+    @AuthenticationPrincipal User user,
+    @RequestBody OrderRequest request
+) {
+    return orderService.create(request);
+}</code></pre>
+                </div>
+            </div>
+
+            <div
+                    class="bg-white p-6 rounded-xl shadow-sm border border-slate-200"
+            >
+                <h3
+                        class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2"
+                >
+                    <i class="fa-solid fa-key text-yellow-600"></i> Composite Keys
+                </h3>
+                <div class="rounded-lg overflow-hidden text-sm">
+              <pre><code class="language-java">@RateLimit(
+    // Combine Tenant ID and User ID
+    key = "#tenant.id + ':' + #user.id",
+    requests = 50,
+    window = 60
+)
+public void tenantAction() { ... }</code></pre>
+                </div>
+                <p class="mt-4 text-sm text-slate-500">
+                    Supports complex key generation logic directly in the annotation.
+                </p>
+            </div>
+
+            <div
+                    class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-2"
+            >
+                <h3
+                        class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2"
+                >
+                    <i class="fa-solid fa-layer-group text-blue-600"></i> Tiered
+                    Limiting (Burst + Average)
+                </h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    Apply multiple limits to a single endpoint to handle bursts while
+                    maintaining long-term quotas.
+                </p>
+                <div class="rounded-lg overflow-hidden text-sm">
+              <pre><code class="language-java">@RateLimits({
+    @RateLimit(name = "burst", requests = 10, window = 1),       // 10 req/sec
+    @RateLimit(name = "hourly", requests = 1000, window = 3600)  // 1000 req/hour
+})
+@GetMapping("/api/resource")
+public Resource getResource() {
+    return resourceService.fetch();
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-16 bg-slate-900 text-slate-300">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div>
+                <h3 class="text-xl font-bold text-white mb-4">
+                    <i class="fa-solid fa-sliders mr-2"></i>Configuration
+                </h3>
+                <p class="mb-4 text-sm">
+                    Configure compiler modes and caching strategies via YAML.
+                </p>
+                <div class="rounded-lg overflow-hidden border border-slate-700">
+              <pre><code class="language-yaml">ratelimit:
+  enabled: true
+  spel:
+    compiler-mode: IMMEDIATE
+    cache-size: 1000</code></pre>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-bold text-white mb-4">
+                    <i class="fa-solid fa-chart-pie mr-2"></i>Prometheus Metrics
+                </h3>
+                <p class="mb-4 text-sm">
+                    Monitor denial rates and throughput seamlessly.
+                </p>
+                <div class="rounded-lg overflow-hidden border border-slate-700">
+              <pre><code class="language-bash"># Denial rate
+rate(ratelimit_requests_total{result="denied"}[5m])
+
+# Success rate
+sum(rate(ratelimit_requests_total{result="allowed"}[5m]))</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="bg-white py-12 border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <p class="text-slate-900 font-semibold mb-2">
+            Built for high-performance engineering.
+        </p>
+        <p class="text-slate-500 text-sm mb-6">
+            Released under Apache License 2.0
+        </p>
+        <div class="flex justify-center space-x-6">
+            <a href="#" class="text-slate-400 hover:text-slate-600"
+            ><i class="fa-brands fa-github text-2xl"></i
+            ></a>
+            <a href="#" class="text-slate-400 hover:text-slate-600"
+            ><i class="fa-brands fa-twitter text-2xl"></i
+            ></a>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-xml.min.js"></script>
+
+<script>
+    function switchTab(framework) {
+        const springBtn = document.getElementById("tab-spring");
+        const quarkusBtn = document.getElementById("tab-quarkus");
+        const springContent = document.getElementById("content-spring");
+        const quarkusContent = document.getElementById("content-quarkus");
+
+        if (framework === "spring") {
+            springBtn.classList.add("text-brand-600", "border-brand-600");
+            springBtn.classList.remove("text-slate-500", "border-transparent");
+
+            quarkusBtn.classList.add("text-slate-500", "border-transparent");
+            quarkusBtn.classList.remove("text-brand-600", "border-brand-600");
+
+            springContent.classList.remove("hidden");
+            quarkusContent.classList.add("hidden");
+        } else {
+            quarkusBtn.classList.add("text-brand-600", "border-brand-600");
+            quarkusBtn.classList.remove("text-slate-500", "border-transparent");
+
+            springBtn.classList.add("text-slate-500", "border-transparent");
+            springBtn.classList.remove("text-brand-600", "border-brand-600");
+
+            quarkusContent.classList.remove("hidden");
+            springContent.classList.add("hidden");
+        }
+    }
+</script>
+</body>
+</html>

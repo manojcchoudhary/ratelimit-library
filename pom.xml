@@ -12,7 +12,7 @@
 
     <name>Rate Limiting Library</name>
     <description>High-performance, annotation-driven rate limiting library for Java</description>
-    <url>https://github.com/lycosoft/ratelimit-library</url>
+    <url>https://github.com/manojcchoudhary/ratelimit-library</url>
 
     <licenses>
         <license>
@@ -26,7 +26,7 @@
         <developer>
             <id>lycosoft</id>
             <name>Lycosoft Team</name>
-            <email>dev@lycosoft.com</email>
+            <email>manojcchoudhary@gmail.com</email>
             <organization>Lycosoft</organization>
             <organizationUrl>https://lycosoft.com</organizationUrl>
         </developer>
@@ -37,17 +37,6 @@
         <developerConnection>scm:git:ssh://github.com:lycosoft/ratelimit-library.git</developerConnection>
         <url>https://github.com/lycosoft/ratelimit-library/tree/main</url>
     </scm>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
     <properties>
         <java.version>17</java.version>
@@ -214,14 +203,14 @@
 
                 <!-- Nexus Staging Maven Plugin - deploys to Maven Central -->
                 <plugin>
-                    <groupId>org.sonatype.plugins</groupId>
-                    <artifactId>nexus-staging-maven-plugin</artifactId>
-                    <version>1.7.0</version>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <version>0.9.0</version>
                     <extensions>true</extensions>
                     <configuration>
-                        <serverId>ossrh</serverId>
-                        <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-                        <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        <publishingServerId>central</publishingServerId>
+                        <tokenAuth>true</tokenAuth>
+                        <autoPublish>true</autoPublish>
                     </configuration>
                 </plugin>
 
@@ -269,8 +258,14 @@
                         <artifactId>maven-gpg-plugin</artifactId>
                     </plugin>
                     <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <tokenAuth>true</tokenAuth>
+                            <autoPublish>true</autoPublish>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
