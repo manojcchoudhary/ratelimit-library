@@ -66,11 +66,11 @@ class RateLimitConfigTest {
     @Test
     void shouldHandleTtlOverflowWithVeryLargeWindow() {
         // Given: Extremely large window that would cause overflow
-        // Long.MAX_VALUE / 2 seconds ≈ 146 billion years
+        // (Long.MAX_VALUE / 2 + 1) * 2 will overflow Long.MAX_VALUE
         RateLimitConfig config = RateLimitConfig.builder()
             .name("test")
             .requests(100)
-            .window(Long.MAX_VALUE / 2)  // Very large window
+            .window(Long.MAX_VALUE / 2 + 1)  // Just enough to trigger overflow
             .windowUnit(TimeUnit.SECONDS)
             .build();
 

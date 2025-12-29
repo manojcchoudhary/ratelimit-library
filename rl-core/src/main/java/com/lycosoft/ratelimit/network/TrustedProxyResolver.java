@@ -123,16 +123,25 @@ public class TrustedProxyResolver {
         
         // Count hops from the right
         int index = ips.size() - trustedHops;
-        
+
         if (index < 0) {
-            logger.warn("Not enough IPs in XFF for {} hops (found {}), using first IP", 
+            logger.warn("Not enough IPs in XFF for {} hops (found {}), using first IP",
                        trustedHops, ips.size());
             return ips.get(0);
         }
-        
+
+        // Handle edge case: when trustedHops is 0, index equals ips.size() (out of bounds)
+        // In this case, return the last (rightmost) IP
+        if (index >= ips.size()) {
+            String clientIp = ips.get(ips.size() - 1);
+            logger.trace("Resolved client IP: {} (from XFF, {} hops, using last IP)",
+                        clientIp, trustedHops);
+            return clientIp;
+        }
+
         String clientIp = ips.get(index);
         logger.trace("Resolved client IP: {} (from XFF with {} hops)", clientIp, trustedHops);
-        
+
         return clientIp;
     }
     

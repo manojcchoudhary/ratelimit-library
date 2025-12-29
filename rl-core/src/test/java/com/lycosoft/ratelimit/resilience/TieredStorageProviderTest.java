@@ -199,8 +199,16 @@ class TieredStorageProviderTest {
         TieredStorageProvider provider = new TieredStorageProvider(failingL1, l2Provider,
             RateLimitConfig.FailStrategy.FAIL_CLOSED);
 
+        // Create config with FAIL_CLOSED strategy (code prioritizes config's strategy)
+        RateLimitConfig failClosedConfig = RateLimitConfig.builder()
+            .name("test-limiter")
+            .requests(100)
+            .window(60)
+            .failStrategy(RateLimitConfig.FailStrategy.FAIL_CLOSED)
+            .build();
+
         // When: Try to acquire
-        boolean allowed = provider.tryAcquire("key1", config, System.currentTimeMillis());
+        boolean allowed = provider.tryAcquire("key1", failClosedConfig, System.currentTimeMillis());
 
         // Then: Should deny request
         assertThat(allowed).isFalse();
