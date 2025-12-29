@@ -64,14 +64,15 @@ class CaffeineStorageProviderTest {
     @Test
     void shouldMaintainAtomicityUnderConcurrentAccessTokenBucket() throws Exception {
         // Given: Token bucket with capacity 100
+        // Use a very long window (1 hour) so refill rate is negligible during test
+        // (Builder auto-calculates refillRate = requests/windowMillis when refillRate=0.0)
         RateLimitConfig config = RateLimitConfig.builder()
             .name("concurrent-test")
             .algorithm(RateLimitConfig.Algorithm.TOKEN_BUCKET)
             .requests(100)
             .window(1)
-            .windowUnit(TimeUnit.SECONDS)
+            .windowUnit(TimeUnit.HOURS)  // 1 hour = negligible refill during test
             .capacity(100)
-            .refillRate(0.0)  // No refill during test
             .build();
 
         int numThreads = 20;
