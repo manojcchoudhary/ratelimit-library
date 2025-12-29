@@ -170,29 +170,25 @@ public class JitteredCircuitBreaker {
      * Handles execution in HALF_OPEN state (testing recovery).
      *
      * <p>Limits concurrent probes to prevent overwhelming the recovering service.
-     * Uses atomic counter to enforce maxConcurrentProbes limit.
+     * Uses atomic CAS loop to enforce maxConcurrentProbes limit without exceeding it.
      */
     private <T> T handleHalfOpenState(Callable<T> operation) throws Exception {
-        // Check if we can start a new probe (atomic check-and-increment)
-        int currentProbes = activeProbes.get();
-        if (currentProbes >= maxConcurrentProbes) {
-            // Too many concurrent probes - reject this request
-            throw new CircuitBreakerOpenException(
-                "Circuit breaker HALF_OPEN but max concurrent probes reached (" +
-                currentProbes + "/" + maxConcurrentProbes + ")"
-            );
-        }
-
-        // Try to increment probe count atomically
-        if (!activeProbes.compareAndSet(currentProbes, currentProbes + 1)) {
-            // Another thread beat us - check again
-            if (activeProbes.get() >= maxConcurrentProbes) {
+        // Proper CAS loop to atomically check-and-increment probe count
+        while (true) {
+            int currentProbes = activeProbes.get();
+            if (currentProbes >= maxConcurrentProbes) {
+                // Too many concurrent probes - reject this request
                 throw new CircuitBreakerOpenException(
-                    "Circuit breaker HALF_OPEN but max concurrent probes reached"
+                    "Circuit breaker HALF_OPEN but max concurrent probes reached (" +
+                    currentProbes + "/" + maxConcurrentProbes + ")"
                 );
             }
-            // Retry increment (simplified - in production use a loop)
-            activeProbes.incrementAndGet();
+
+            // Try to increment atomically; if another thread beat us, retry the loop
+            if (activeProbes.compareAndSet(currentProbes, currentProbes + 1)) {
+                break; // Successfully acquired a probe slot
+            }
+            // CAS failed - another thread modified the counter, loop and retry
         }
 
         try {
