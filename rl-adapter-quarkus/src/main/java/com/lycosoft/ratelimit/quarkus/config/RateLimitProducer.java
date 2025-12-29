@@ -140,13 +140,16 @@ public class RateLimitProducer {
     }
     
     /**
-     * Creates an adaptive throttler if enabled.
-     * 
+     * Creates an adaptive throttler if enabled, or a no-op throttler if disabled.
+     *
+     * <p><b>Note:</b> When disabled, returns a no-op throttler (maxDelayMs=0) instead of null
+     * to prevent NullPointerExceptions in consumers that inject AdaptiveThrottler directly.
+     *
      * @param enabled whether adaptive throttling is enabled
      * @param softLimit soft limit threshold (default: 80)
      * @param maxDelayMs maximum delay in milliseconds (default: 2000)
      * @param strategy throttling strategy (default: LINEAR)
-     * @return the adaptive throttler, or null if disabled
+     * @return the adaptive throttler (never null)
      * @since 1.1.0
      */
     @Produces
@@ -156,19 +159,20 @@ public class RateLimitProducer {
             @ConfigProperty(name = "ratelimit.throttling.soft-limit", defaultValue = "80") int softLimit,
             @ConfigProperty(name = "ratelimit.throttling.max-delay-ms", defaultValue = "2000") long maxDelayMs,
             @ConfigProperty(name = "ratelimit.throttling.strategy", defaultValue = "LINEAR") String strategy) {
-        
+
         if (!enabled) {
-            logger.info("Adaptive throttling is disabled");
-            return null;  // Return null instead of Optional.empty()
+            logger.info("Adaptive throttling is disabled, creating no-op throttler");
+            // Return a no-op throttler (maxDelayMs=0 means calculateDelay always returns 0)
+            return new AdaptiveThrottler(100, 100, 0, AdaptiveThrottler.Strategy.LINEAR);
         }
-        
-        logger.info("Creating AdaptiveThrottler: softLimit={}, maxDelay={}ms, strategy={}", 
+
+        logger.info("Creating AdaptiveThrottler: softLimit={}, maxDelay={}ms, strategy={}",
                    softLimit, maxDelayMs, strategy);
-        
+
         AdaptiveThrottler.Strategy strategyEnum = AdaptiveThrottler.Strategy.valueOf(
             strategy.toUpperCase()
         );
-        
+
         return new AdaptiveThrottler(
             softLimit,
             100,  // Hard limit (100%)

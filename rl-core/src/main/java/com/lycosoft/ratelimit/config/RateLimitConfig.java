@@ -41,7 +41,14 @@ public final class RateLimitConfig {
     
     private long calculateTtl() {
         // TTL = 2 × Window Size (for cleanup)
-        return 2 * windowUnit.toSeconds(window);
+        // Use Math.multiplyExact to detect overflow with very large windows
+        try {
+            long windowSeconds = windowUnit.toSeconds(window);
+            return Math.multiplyExact(2L, windowSeconds);
+        } catch (ArithmeticException e) {
+            // If overflow occurs, use maximum safe value (Long.MAX_VALUE / 2 to avoid further overflow)
+            return Long.MAX_VALUE / 2;
+        }
     }
     
     public String getName() {
