@@ -13,6 +13,7 @@ import redis.clients.jedis.exceptions.JedisDataException;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Redis-based storage provider for rate limiting.
@@ -54,12 +55,13 @@ public class RedisStorageProvider implements StorageProvider {
             ThreadLocal.withInitial(() -> new String[5]);
 
     private static final ThreadLocal<String[]> SLIDING_WINDOW_ARGS_BUFFER =
-            ThreadLocal.withInitial(() -> new String[4]);
+            ThreadLocal.withInitial(() -> new String[4]);  // 4 elements: limit, window_size, current_time, ttl
 
-    // Add local caching with short TTL
-    private volatile long cachedTime = 0;
-    private volatile long cacheExpiry = 0;
+    // Atomic cache entry to prevent non-atomic reads of cachedTime and cacheExpiry
     private static final long CACHE_TTL_MS = 100; // Cache for 100ms
+
+    private record CacheEntry(long cachedTime, long cacheExpiry) {}
+    private final AtomicReference<CacheEntry> timeCache = new AtomicReference<>(new CacheEntry(0, 0));
 
     /**
      * Creates a Redis storage provider with the given Jedis pool.
@@ -90,12 +92,14 @@ public class RedisStorageProvider implements StorageProvider {
         long now = System.currentTimeMillis();
 
         // Check local cache first to prevent Redis DoS vector.
-        if (now < cacheExpiry) {
-            return cachedTime + (now - (cacheExpiry - CACHE_TTL_MS));
+        // Use atomic read to prevent inconsistent state between cachedTime and cacheExpiry
+        CacheEntry cache = timeCache.get();
+        if (now < cache.cacheExpiry()) {
+            return cache.cachedTime() + (now - (cache.cacheExpiry() - CACHE_TTL_MS));
         }
 
         if (!useRedisTime) {
-            return now; // ✅ No network call
+            return now; // No network call
         }
 
         try (Jedis jedis = jedisPool.getResource()) {
@@ -108,9 +112,8 @@ public class RedisStorageProvider implements StorageProvider {
             // Convert to milliseconds
             long redisTime = (seconds * 1000) + (microseconds / 1000);
 
-            // Update cache
-            cachedTime = redisTime;
-            cacheExpiry = now + CACHE_TTL_MS;
+            // Atomic update of cache
+            timeCache.set(new CacheEntry(redisTime, now + CACHE_TTL_MS));
 
             return redisTime;
         } catch (Exception e) {
@@ -162,18 +165,19 @@ public class RedisStorageProvider implements StorageProvider {
         }
 
         try (Jedis jedis = jedisPool.getResource()) {
-            long durationMicros = (System.nanoTime() - startNanos) / 1000;
-
             Object result = switch (config.getAlgorithm()) {
                 case TOKEN_BUCKET -> executeTokenBucketScript(jedis, key, config, currentTime);
                 case SLIDING_WINDOW -> executeSlidingWindowScript(jedis, key, config, currentTime);
                 default -> throw new IllegalArgumentException("Unsupported algorithm: " + config.getAlgorithm());
             };
 
+            // Calculate duration AFTER the actual Redis operation
+            long durationMicros = (System.nanoTime() - startNanos) / 1000;
+
             // Validate and parse result safely
             if (!(result instanceof List)) {
                 logger.error("Unexpected Lua script return type: {}, key: {}",
-                        result.getClass().getName(), key);
+                        result.getClass().getName(), maskKey(key));
                 throw new SecureStorageException("Service temporarily unavailable", "Invalid Lua script response type");
             }
 
@@ -181,42 +185,56 @@ public class RedisStorageProvider implements StorageProvider {
             List<Long> scriptResult = (List<Long>) result;
 
             if (scriptResult.isEmpty()) {
-                logger.error("Lua script returned empty list for key: {}", key);
+                logger.error("Lua script returned empty list for key: {}", maskKey(key));
                 throw new SecureStorageException("Service temporarily unavailable", "Malformed Lua script response");
             }
 
             // Safe access with bounds checking
             Long allowedValue = scriptResult.get(0);
             if (allowedValue == null) {
-                logger.error("Lua script returned null allowed value for key: {}", key);
+                logger.error("Lua script returned null allowed value for key: {}", maskKey(key));
                 throw new SecureStorageException("Service temporarily unavailable", "Null value in Lua script response");
             }
 
             boolean allowed = allowedValue == 1;
 
-            // Warn on slow operations
+            // Warn on slow operations (use masked key for PII protection)
             if (durationMicros > 5000) { // >5ms
                 logger.warn("Slow rate limit check: key={}, duration={}μs, algorithm={}",
-                        key, durationMicros, config.getAlgorithm());
+                        maskKey(key), durationMicros, config.getAlgorithm());
             }
 
-            // Info-level sampling for production visibility
+            // Info-level sampling for production visibility (use masked key for PII protection)
             if (ThreadLocalRandom.current().nextInt(1000) == 0) { // 0.1% sampling
                 logger.info("Rate limit: key={}, allowed={}, duration={}μs, algo={}",
-                        key, allowed, durationMicros, config.getAlgorithm());
+                        maskKey(key), allowed, durationMicros, config.getAlgorithm());
             }
 
             logger.debug("Rate limit check: key={}, allowed={}, remaining={}, duration={}μs",
-                    key, allowed, scriptResult.get(1), durationMicros);
+                    maskKey(key), allowed, scriptResult.get(1), durationMicros);
 
             return allowed;
 
         } catch (Exception e) {
             long durationMicros = (System.nanoTime() - startNanos) / 1000;
             logger.error("Rate limit error: key={}, duration={}μs, error={}",
-                    key, durationMicros, e.getMessage(), e);
+                    maskKey(key), durationMicros, e.getMessage(), e);
             throw new SecureStorageException("Service temporarily unavailable", "Failed to check rate limit", e);
         }
+    }
+
+    /**
+     * Masks a key for logging to protect PII.
+     * Shows first 4 and last 4 characters, masks the middle.
+     *
+     * @param key the key to mask
+     * @return the masked key
+     */
+    private String maskKey(String key) {
+        if (key == null || key.length() <= 8) {
+            return "***";
+        }
+        return key.substring(0, 4) + "..." + key.substring(key.length() - 4);
     }
 
     /**
@@ -260,10 +278,10 @@ public class RedisStorageProvider implements StorageProvider {
         keys[0] = key;
 
         String[] args = SLIDING_WINDOW_ARGS_BUFFER.get();
-        args[0] = String.valueOf(config.getRequests()); //limit
-        args[1] = String.valueOf(config.getWindowMillis()); //window_size
-        args[3] = String.valueOf(currentTime); // current_time
-        args[4] = String.valueOf(config.getTtl()); //ttl
+        args[0] = String.valueOf(config.getRequests()); // limit
+        args[1] = String.valueOf(config.getWindowMillis()); // window_size
+        args[2] = String.valueOf(currentTime); // current_time (fixed: was incorrectly at index 3)
+        args[3] = String.valueOf(config.getTtl()); // ttl (fixed: was incorrectly at index 4)
 
         return scriptManager.evalsha(jedis, SLIDING_WINDOW_SCRIPT, keys, args);
     }

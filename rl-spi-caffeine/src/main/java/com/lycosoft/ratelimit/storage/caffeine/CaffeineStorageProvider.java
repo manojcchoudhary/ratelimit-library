@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Caffeine-based in-memory storage provider for rate limiting.
@@ -114,7 +115,10 @@ public class CaffeineStorageProvider implements StorageProvider {
     
     /**
      * Tries to acquire using Token Bucket algorithm.
-     * 
+     *
+     * <p><b>Thread Safety:</b> Uses atomic compute() operation to prevent
+     * race conditions (TOCTOU - Time-of-Check to Time-of-Use).
+     *
      * @param key the rate limit key
      * @param config the configuration
      * @param currentTime the current time
@@ -125,27 +129,27 @@ public class CaffeineStorageProvider implements StorageProvider {
             config.getCapacity(),
             config.getRefillRate()
         );
-        
-        // Get or create state
-        TokenBucketAlgorithm.BucketState oldState = tokenBucketCache.getIfPresent(key);
-        
-        // Try to consume
-        TokenBucketAlgorithm.BucketState newState = algorithm.tryConsume(oldState, 1, currentTime);
-        
-        // Update cache
-        if (newState.allowed()) {
-            tokenBucketCache.put(key, newState);
-        }
-        
-        logger.trace("Token Bucket check for key={}, allowed={}, tokens={}", 
-                    key, newState.allowed(), newState.tokens());
-        
-        return newState.allowed();
+
+        // Use atomic compute() to prevent race conditions (TOCTOU)
+        // Always update state to track refill time correctly, regardless of allow/deny
+        AtomicBoolean allowed = new AtomicBoolean(false);
+        tokenBucketCache.asMap().compute(key, (k, oldState) -> {
+            TokenBucketAlgorithm.BucketState newState = algorithm.tryConsume(oldState, 1, currentTime);
+            allowed.set(newState.allowed());
+            return newState;  // Always persist state for correct refill tracking
+        });
+
+        logger.trace("Token Bucket check for key={}, allowed={}", key, allowed.get());
+
+        return allowed.get();
     }
     
     /**
      * Tries to acquire using Sliding Window algorithm.
-     * 
+     *
+     * <p><b>Thread Safety:</b> Uses atomic compute() operation to prevent
+     * race conditions (TOCTOU - Time-of-Check to Time-of-Use).
+     *
      * @param key the rate limit key
      * @param config the configuration
      * @param currentTime the current time
@@ -156,22 +160,19 @@ public class CaffeineStorageProvider implements StorageProvider {
             config.getRequests(),
             config.getWindowMillis()
         );
-        
-        // Get or create state
-        SlidingWindowAlgorithm.WindowState oldState = slidingWindowCache.getIfPresent(key);
-        
-        // Try to consume
-        SlidingWindowAlgorithm.WindowState newState = algorithm.tryConsume(oldState, currentTime);
-        
-        // Update cache
-        if (newState.isAllowed()) {
-            slidingWindowCache.put(key, newState);
-        }
-        
-        logger.trace("Sliding Window check for key={}, allowed={}", 
-                    key, newState.isAllowed());
-        
-        return newState.isAllowed();
+
+        // Use atomic compute() to prevent race conditions (TOCTOU)
+        // Always update state to track window rotation correctly, regardless of allow/deny
+        AtomicBoolean allowed = new AtomicBoolean(false);
+        slidingWindowCache.asMap().compute(key, (k, oldState) -> {
+            SlidingWindowAlgorithm.WindowState newState = algorithm.tryConsume(oldState, currentTime);
+            allowed.set(newState.isAllowed());
+            return newState;  // Always persist state for correct window tracking
+        });
+
+        logger.trace("Sliding Window check for key={}, allowed={}", key, allowed.get());
+
+        return allowed.get();
     }
     
     @Override

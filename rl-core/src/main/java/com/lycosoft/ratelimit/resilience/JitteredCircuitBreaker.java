@@ -47,8 +47,9 @@ public class JitteredCircuitBreaker {
     private final AtomicInteger failureCount = new AtomicInteger(0);
     private final AtomicInteger successCount = new AtomicInteger(0);
     private final AtomicLong lastFailureTime = new AtomicLong(0);
+    private final AtomicInteger activeProbes = new AtomicInteger(0);
     private final Random random = new Random();
-    
+
     // Configuration
     private final double failureThreshold;
     private final long windowMs;
@@ -149,16 +150,19 @@ public class JitteredCircuitBreaker {
     private <T> T handleOpenState(Callable<T> operation) throws Exception {
         long elapsed = System.currentTimeMillis() - lastFailureTime.get();
         long jitteredTimeout = calculateJitteredTimeout();
-        
+
         if (elapsed > jitteredTimeout) {
             // Transition to HALF_OPEN with jitter
             if (state.compareAndSet(State.OPEN, State.HALF_OPEN)) {
-                logger.info("Circuit transitioning to HALF_OPEN after {}ms (jittered timeout: {}ms)", 
+                logger.info("Circuit transitioning to HALF_OPEN after {}ms (jittered timeout: {}ms)",
                            elapsed, jitteredTimeout);
+            }
+            // Either we transitioned to HALF_OPEN, or another thread did - proceed with probe
+            if (state.get() == State.HALF_OPEN) {
                 return handleHalfOpenState(operation);
             }
         }
-        
+
         // Circuit still open - reject request
         throw new CircuitBreakerOpenException(
             "Circuit breaker is OPEN (elapsed: " + elapsed + "ms, timeout: " + jitteredTimeout + "ms)"
@@ -167,20 +171,40 @@ public class JitteredCircuitBreaker {
     
     /**
      * Handles execution in HALF_OPEN state (testing recovery).
+     *
+     * <p>Limits concurrent probes to prevent overwhelming the recovering service.
+     * Uses atomic CAS loop to enforce maxConcurrentProbes limit without exceeding it.
      */
     private <T> T handleHalfOpenState(Callable<T> operation) throws Exception {
-        // Only allow limited concurrent probes
-        synchronized (this) {
-            try {
-                T result = operation.call();
-                onSuccess(); // Transition to CLOSED
-                logger.info("Circuit probe succeeded, transitioning to CLOSED");
-                return result;
-            } catch (Exception e) {
-                onFailure(); // Back to OPEN
-                logger.warn("Circuit probe failed, back to OPEN");
-                throw e;
+        // Proper CAS loop to atomically check-and-increment probe count
+        while (true) {
+            int currentProbes = activeProbes.get();
+            if (currentProbes >= maxConcurrentProbes) {
+                // Too many concurrent probes - reject this request
+                throw new CircuitBreakerOpenException(
+                    "Circuit breaker HALF_OPEN but max concurrent probes reached (" +
+                    currentProbes + "/" + maxConcurrentProbes + ")"
+                );
             }
+
+            // Try to increment atomically; if another thread beat us, retry the loop
+            if (activeProbes.compareAndSet(currentProbes, currentProbes + 1)) {
+                break; // Successfully acquired a probe slot
+            }
+            // CAS failed - another thread modified the counter, loop and retry
+        }
+
+        try {
+            T result = operation.call();
+            onSuccess(); // Transition to CLOSED
+            logger.info("Circuit probe succeeded, transitioning to CLOSED");
+            return result;
+        } catch (Exception e) {
+            onFailure(); // Back to OPEN
+            logger.warn("Circuit probe failed, back to OPEN");
+            throw e;
+        } finally {
+            activeProbes.decrementAndGet();
         }
     }
     
@@ -243,11 +267,12 @@ public class JitteredCircuitBreaker {
     }
     
     /**
-     * Resets failure and success counters.
+     * Resets failure, success, and probe counters.
      */
     private void resetCounters() {
         failureCount.set(0);
         successCount.set(0);
+        activeProbes.set(0);
         logger.debug("Circuit breaker counters reset");
     }
     

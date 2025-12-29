@@ -1,8 +1,9 @@
 package com.lycosoft.ratelimit.security;
 
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
@@ -24,28 +25,41 @@ import java.util.regex.Pattern;
 public class VariableValidator {
     
     /**
-     * Forbidden keywords that indicate potential security risks.
+     * Default forbidden keywords that indicate potential security risks.
      * These keywords are commonly used in injection attacks.
+     * This set is immutable - custom keywords are stored in instance field.
      */
-    private static final Set<String> FORBIDDEN_KEYWORDS = new HashSet<>(Arrays.asList(
+    private static final Set<String> DEFAULT_FORBIDDEN_KEYWORDS = Set.of(
         // ClassLoader and Class access
         "class", "forname", "classloader", "loader",
-        
+
         // Runtime and System access
         "runtime", "system", "process", "processbuilder",
-        
+
         // Reflection
         "method", "constructor", "field", "invoke",
-        
+
         // Security Manager
         "securitymanager", "accesscontroller",
-        
+
         // File and Network I/O
         "file", "socket", "url",
-        
+
         // Script engines
-        "scriptengine", "scriptenginemanager"
-    ));
+        "scriptengine", "scriptenginemanager",
+
+        // Additional dangerous patterns (added for completeness)
+        "introspector", "beaninfo", "propertyeditor",  // java.beans abuse
+        "nashorn", "rhino", "javascript",  // Script engine names
+        "exec", "shell", "cmd",  // Command execution
+        "getenv", "setproperty"  // Environment access
+    );
+
+    /**
+     * Thread-safe set for custom forbidden keywords added at runtime.
+     * Uses ConcurrentHashMap.newKeySet() for thread-safe operations.
+     */
+    private final Set<String> customForbiddenKeywords = ConcurrentHashMap.newKeySet();
     
     /**
      * Pattern for valid variable names.
@@ -62,7 +76,7 @@ public class VariableValidator {
     
     /**
      * Validates a variable name for security.
-     * 
+     *
      * @param variableName the variable name to validate
      * @throws SecurityException if the variable name is invalid or contains forbidden keywords
      */
@@ -70,25 +84,19 @@ public class VariableValidator {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new SecurityException("Variable name cannot be null or empty");
         }
-        
+
         String normalized = variableName.trim().toLowerCase();
-        
-        // Check for forbidden keywords
-        for (String keyword : FORBIDDEN_KEYWORDS) {
-            if (normalized.contains(keyword)) {
-                throw new SecurityException(
-                    "Variable name '" + variableName + "' contains forbidden keyword: " + keyword
-                );
-            }
-        }
-        
+
+        // Check for forbidden keywords (both default and custom)
+        checkForbiddenKeywords(normalized, variableName);
+
         // Check for injection characters
         if (INJECTION_PATTERN.matcher(variableName).matches()) {
             throw new SecurityException(
                 "Variable name '" + variableName + "' contains suspicious characters"
             );
         }
-        
+
         // Check valid format
         if (!VALID_VARIABLE_NAME.matcher(variableName).matches()) {
             throw new SecurityException(
@@ -97,12 +105,39 @@ public class VariableValidator {
             );
         }
     }
+
+    /**
+     * Checks if a normalized string contains any forbidden keywords.
+     *
+     * @param normalized the lowercase normalized string to check
+     * @param originalValue the original value for error messages
+     * @throws SecurityException if a forbidden keyword is found
+     */
+    private void checkForbiddenKeywords(String normalized, String originalValue) {
+        // Check default forbidden keywords
+        for (String keyword : DEFAULT_FORBIDDEN_KEYWORDS) {
+            if (normalized.contains(keyword)) {
+                throw new SecurityException(
+                    "Value '" + originalValue + "' contains forbidden keyword: " + keyword
+                );
+            }
+        }
+
+        // Check custom forbidden keywords (thread-safe iteration)
+        for (String keyword : customForbiddenKeywords) {
+            if (normalized.contains(keyword)) {
+                throw new SecurityException(
+                    "Value '" + originalValue + "' contains forbidden keyword: " + keyword
+                );
+            }
+        }
+    }
     
     /**
      * Validates a variable value for security.
-     * 
+     *
      * <p>This method performs basic validation to detect obvious injection attempts.
-     * 
+     *
      * @param variableName the variable name (for error messages)
      * @param value the value to validate
      * @throws SecurityException if the value appears to contain malicious content
@@ -111,23 +146,24 @@ public class VariableValidator {
         if (value == null) {
             return; // null is safe
         }
-        
-        String valueStr = value.toString().toLowerCase();
-        
-        // Check for forbidden keywords in value
-        for (String keyword : FORBIDDEN_KEYWORDS) {
-            if (valueStr.contains(keyword)) {
-                throw new SecurityException(
-                    "Variable '" + variableName + "' value contains forbidden keyword: " + keyword
-                );
-            }
-        }
-        
+
+        String originalValue = value.toString();
+        String valueStr = originalValue.toLowerCase();
+
+        // Check for forbidden keywords in value (both default and custom)
+        checkForbiddenKeywords(valueStr, "Variable '" + variableName + "' value");
+
         // Check for suspicious patterns that might indicate code injection
-        if (valueStr.contains("t(") || // T() expression in SpEL
-            valueStr.contains("@") ||  // Bean references in SpEL
-            valueStr.contains("${") || // Property placeholders
-            valueStr.contains("#{")) { // SpEL expressions
+        // SECURITY FIX: Check both lowercase and original case for T() expression
+        // SpEL uses T(classname) for type references and is case-sensitive
+        if (valueStr.contains("t(") ||            // lowercase t()
+            originalValue.contains("T(") ||        // FIXED: uppercase T() - SpEL type expression
+            valueStr.contains("@") ||              // Bean references in SpEL
+            valueStr.contains("${") ||             // Property placeholders
+            valueStr.contains("#{") ||             // SpEL expressions
+            originalValue.contains("new ") ||      // Object instantiation
+            valueStr.contains("getclass") ||       // getClass() method call
+            valueStr.contains("getruntime")) {     // Runtime.getRuntime()
             throw new SecurityException(
                 "Variable '" + variableName + "' value contains suspicious expression patterns"
             );
@@ -136,7 +172,7 @@ public class VariableValidator {
     
     /**
      * Checks if a variable type is safe to use.
-     * 
+     *
      * @param type the class type to validate
      * @return true if the type is safe, false otherwise
      */
@@ -144,9 +180,9 @@ public class VariableValidator {
         if (type == null) {
             return false;
         }
-        
+
         // Primitive types and wrappers are safe
-        if (type.isPrimitive() || 
+        if (type.isPrimitive() ||
             type == String.class ||
             type == Integer.class ||
             type == Long.class ||
@@ -158,8 +194,8 @@ public class VariableValidator {
             type == Short.class) {
             return true;
         }
-        
-        // Dangerous types
+
+        // Dangerous types - explicit class checks
         if (type == Class.class ||
             type == ClassLoader.class ||
             type == Runtime.class ||
@@ -167,39 +203,77 @@ public class VariableValidator {
             type == ProcessBuilder.class) {
             return false;
         }
-        
-        // Package-based checks
+
+        // Package-based checks for dangerous packages
         String packageName = type.getPackage() != null ? type.getPackage().getName() : "";
-        
+        String className = type.getName();
+
         // Reflection packages are dangerous
         if (packageName.startsWith("java.lang.reflect") ||
             packageName.startsWith("java.lang.invoke")) {
             return false;
         }
-        
+
+        // SECURITY FIX: Additional dangerous packages that were missing
+        if (packageName.startsWith("sun.reflect") ||           // Sun reflection internals
+            packageName.startsWith("sun.misc") ||              // Unsafe, etc.
+            packageName.startsWith("jdk.internal") ||          // JDK internals
+            packageName.startsWith("java.beans") ||            // Introspector, PropertyEditor
+            packageName.startsWith("javax.script") ||          // ScriptEngine
+            packageName.startsWith("javax.management") ||      // JMX (can execute code)
+            packageName.startsWith("java.rmi") ||              // RMI (remote code execution)
+            packageName.startsWith("javax.naming") ||          // JNDI (JNDI injection)
+            packageName.startsWith("java.lang.instrument")) {  // Instrumentation
+            return false;
+        }
+
+        // Check for specific dangerous classes by name pattern
+        if (className.contains("Unsafe") ||
+            className.contains("ScriptEngine") ||
+            className.contains("Introspector") ||
+            className.contains("MethodHandle")) {
+            return false;
+        }
+
         // Default: allow
         return true;
     }
     
     /**
      * Adds a custom forbidden keyword.
-     * 
+     *
      * <p>This allows applications to extend the security policy with domain-specific keywords.
-     * 
+     * Custom keywords are stored in an instance-level thread-safe set, separate from the
+     * immutable default keywords. This ensures thread-safety and prevents global state mutation.
+     *
      * @param keyword the keyword to forbid (case-insensitive)
      */
     public void addForbiddenKeyword(String keyword) {
         if (keyword != null && !keyword.trim().isEmpty()) {
-            FORBIDDEN_KEYWORDS.add(keyword.toLowerCase().trim());
+            // Thread-safe addition to instance-level custom keywords set
+            customForbiddenKeywords.add(keyword.toLowerCase().trim());
         }
     }
-    
+
     /**
-     * Gets the set of forbidden keywords (unmodifiable view).
-     * 
-     * @return the forbidden keywords
+     * Gets the combined set of forbidden keywords (default + custom).
+     *
+     * @return an unmodifiable view of all forbidden keywords
      */
     public Set<String> getForbiddenKeywords() {
-        return new HashSet<>(FORBIDDEN_KEYWORDS);
+        // Combine default and custom keywords into a new set
+        Set<String> combined = ConcurrentHashMap.newKeySet();
+        combined.addAll(DEFAULT_FORBIDDEN_KEYWORDS);
+        combined.addAll(customForbiddenKeywords);
+        return Collections.unmodifiableSet(combined);
+    }
+
+    /**
+     * Clears all custom forbidden keywords.
+     *
+     * <p>This does not affect the default forbidden keywords.
+     */
+    public void clearCustomKeywords() {
+        customForbiddenKeywords.clear();
     }
 }

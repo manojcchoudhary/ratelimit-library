@@ -123,16 +123,25 @@ public class TrustedProxyResolver {
         
         // Count hops from the right
         int index = ips.size() - trustedHops;
-        
+
         if (index < 0) {
-            logger.warn("Not enough IPs in XFF for {} hops (found {}), using first IP", 
+            logger.warn("Not enough IPs in XFF for {} hops (found {}), using first IP",
                        trustedHops, ips.size());
             return ips.get(0);
         }
-        
+
+        // Handle edge case: when trustedHops is 0, index equals ips.size() (out of bounds)
+        // In this case, return the last (rightmost) IP
+        if (index >= ips.size()) {
+            String clientIp = ips.get(ips.size() - 1);
+            logger.trace("Resolved client IP: {} (from XFF, {} hops, using last IP)",
+                        clientIp, trustedHops);
+            return clientIp;
+        }
+
         String clientIp = ips.get(index);
         logger.trace("Resolved client IP: {} (from XFF with {} hops)", clientIp, trustedHops);
-        
+
         return clientIp;
     }
     
@@ -161,23 +170,51 @@ public class TrustedProxyResolver {
     }
     
     /**
-     * Parses X-Forwarded-For header into list of IP addresses.
-     * 
+     * Parses X-Forwarded-For header into list of valid IP addresses.
+     *
+     * <p><b>Security:</b> Each IP is validated using {@link InetAddress#getByName(String)}
+     * to prevent malformed IPs from being returned as client IPs.
+     *
      * @param xForwardedFor the header value
-     * @return list of IP addresses (trimmed, whitespace removed)
+     * @return list of valid IP addresses (trimmed, whitespace removed, validated)
      */
     private List<String> parseXForwardedFor(String xForwardedFor) {
         List<String> ips = new ArrayList<>();
-        
+
         String[] parts = xForwardedFor.split(",");
         for (String part : parts) {
             String ip = part.trim();
             if (!ip.isEmpty()) {
-                ips.add(ip);
+                // SECURITY: Validate each IP before adding to prevent malformed IPs
+                if (isValidIpAddress(ip)) {
+                    ips.add(ip);
+                } else {
+                    logger.warn("Invalid IP address in X-Forwarded-For header: '{}', skipping",
+                            ip.length() > 50 ? ip.substring(0, 50) + "..." : ip);
+                }
             }
         }
-        
+
         return ips;
+    }
+
+    /**
+     * Validates an IP address string.
+     *
+     * @param ip the IP address to validate
+     * @return true if valid, false otherwise
+     */
+    private boolean isValidIpAddress(String ip) {
+        if (ip == null || ip.isEmpty() || ip.length() > 45) { // Max IPv6 length
+            return false;
+        }
+
+        try {
+            InetAddress.getByName(ip);
+            return true;
+        } catch (UnknownHostException e) {
+            return false;
+        }
     }
     
     /**

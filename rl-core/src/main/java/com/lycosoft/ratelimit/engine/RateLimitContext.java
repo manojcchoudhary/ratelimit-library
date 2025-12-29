@@ -1,6 +1,8 @@
 package com.lycosoft.ratelimit.engine;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -25,9 +27,13 @@ public final class RateLimitContext {
         this.keyExpression = builder.keyExpression;
         this.principal = builder.principal;
         this.remoteAddress = builder.remoteAddress;
-        this.methodArguments = builder.methodArguments;
-        this.requestHeaders = builder.requestHeaders != null 
-            ? Collections.unmodifiableMap(builder.requestHeaders)
+        // Defensive copy to prevent external mutation of internal state
+        this.methodArguments = builder.methodArguments != null
+            ? Arrays.copyOf(builder.methodArguments, builder.methodArguments.length)
+            : new Object[0];
+        // Defensive copy to prevent external mutation of internal state
+        this.requestHeaders = builder.requestHeaders != null
+            ? Collections.unmodifiableMap(new HashMap<>(builder.requestHeaders))
             : Collections.emptyMap();
         this.methodSignature = builder.methodSignature;
     }
@@ -44,8 +50,16 @@ public final class RateLimitContext {
         return remoteAddress;
     }
     
+    /**
+     * Returns a defensive copy of the method arguments array.
+     *
+     * <p><b>Encapsulation:</b> Returns a copy to prevent external mutation
+     * of this immutable object's internal state.
+     *
+     * @return a copy of the method arguments array (never null)
+     */
     public Object[] getMethodArguments() {
-        return methodArguments;
+        return Arrays.copyOf(methodArguments, methodArguments.length);
     }
     
     public Map<String, String> getRequestHeaders() {

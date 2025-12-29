@@ -187,10 +187,20 @@ public class TieredStorageProvider implements StorageProvider {
 
     @Override
     public Map<String, Object> getDiagnostics() {
-        return Map.of("l1Healthy", l1Provider.isHealthy(),
-                "l2Healthy", l2Provider.isHealthy(),
-                "l1Diagnostics", l1Provider.getDiagnostics(),
-                "l2Diagnostics", l2Provider.getDiagnostics());
+        Map<String, Object> diagnostics = new java.util.HashMap<>();
+        diagnostics.put("l1Healthy", l1Provider.isHealthy());
+        diagnostics.put("l2Healthy", l2Provider.isHealthy());
+        diagnostics.put("circuitState", circuitBreaker.getState().name());
+        diagnostics.put("circuitFailureRate", circuitBreaker.getFailureRate());
+
+        // Null-safe handling of provider diagnostics
+        Map<String, Object> l1Diag = l1Provider.getDiagnostics();
+        diagnostics.put("l1Diagnostics", l1Diag != null ? l1Diag : java.util.Collections.emptyMap());
+
+        Map<String, Object> l2Diag = l2Provider.getDiagnostics();
+        diagnostics.put("l2Diagnostics", l2Diag != null ? l2Diag : java.util.Collections.emptyMap());
+
+        return diagnostics;
     }
 
     /**

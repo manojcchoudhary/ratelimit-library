@@ -166,11 +166,13 @@ public class LimiterEngine {
             case FAIL_CLOSED:
                 // Deny request (CP mode - consistency priority)
                 logger.info("Failing closed for limiter: {}", config.getName());
+                // SECURITY: Use generic error message to avoid leaking internal details
+                // The actual error is logged above at ERROR level
                 return RateLimitDecision.deny(
                     config.getName(),
                     config.getRequests(),
                     System.currentTimeMillis() + config.getWindowMillis(),
-                    "Rate limiter unavailable: " + error.getMessage()
+                    "Rate limiter temporarily unavailable"
                 );
                 
             default:

@@ -11,7 +11,6 @@ import com.lycosoft.ratelimit.quarkus.annotation.RateLimit;
 import com.lycosoft.ratelimit.quarkus.annotation.RateLimits;
 import com.lycosoft.ratelimit.spi.KeyResolver;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.HttpServerRequest;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
@@ -22,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.time.Duration;
 import java.util.*;
 
 /**
@@ -264,34 +262,49 @@ public class RateLimitInterceptor {
     
     /**
      * Applies adaptive throttling delay.
-     * 
-     * <p>WARNING: This uses Thread.sleep() which can lead to thread pool exhaustion
-     * in high-traffic scenarios. For production use with high concurrency, consider
-     * using reactive/async delays instead (e.g., with Mutiny Uni.onItem().delayIt()).
-     * 
+     *
+     * <p><b>CRITICAL PERFORMANCE WARNING:</b> This method uses {@code Thread.sleep()}
+     * which blocks the current thread. In high-traffic scenarios, this can lead to:
+     * <ul>
+     *   <li><b>Thread pool exhaustion:</b> Blocked threads cannot serve other requests</li>
+     *   <li><b>Cascading failures:</b> Request queue backup can overwhelm the system</li>
+     *   <li><b>Increased latency:</b> All requests experience added delay</li>
+     * </ul>
+     *
+     * <p><b>Production recommendations:</b>
+     * <ul>
+     *   <li>For high concurrency (&gt;100 RPS): Consider returning 429 with Retry-After header</li>
+     *   <li>Set conservative maxDelayMs values (e.g., 100-500ms max)</li>
+     *   <li>Monitor thread pool utilization when adaptive throttling is enabled</li>
+     * </ul>
+     *
+     * <p><b>Note:</b> A non-blocking Uni-based approach was considered but would require
+     * the interceptor to return Uni types, which is not compatible with all use cases.
+     *
      * @param delayMs delay in milliseconds
      * @param limiterName the limiter name (for logging)
      * @since 1.1.0
      */
-//    private void applyAdaptiveDelay(long delayMs, String limiterName) {
-//        if (adaptiveThrottlerInstance.isResolvable() && !adaptiveThrottlerInstance.isUnsatisfied()) {
-//            try {
-//                logger.debug("Applying adaptive throttle delay: {}ms for limiter '{}'",
-//                            delayMs, limiterName);
-//                Thread.sleep(delayMs);
-//            } catch (InterruptedException e) {
-//                Thread.currentThread().interrupt();
-//                logger.warn("Adaptive throttle delay interrupted for limiter '{}'", limiterName);
-//            }
-//        }
-//    }
-    private Uni<Object> applyAdaptiveDelay(long delayMs, String limiterName) {
-        if (delayMs > 0) {
-            // Non-blocking delay
-            return Uni.createFrom().item(new Object())
-                    .onItem().delayIt().by(Duration.ofMillis(delayMs));
+    private void applyAdaptiveDelay(long delayMs, String limiterName) {
+        if (delayMs <= 0) {
+            return;
         }
-        return Uni.createFrom().item(new Object());
+
+        // Log at INFO level for significant delays to ensure visibility in production
+        if (delayMs > 100) {
+            logger.info("Applying significant adaptive throttle delay: {}ms for limiter '{}' " +
+                    "(WARNING: may cause thread pool pressure)", delayMs, limiterName);
+        } else {
+            logger.debug("Applying adaptive throttle delay: {}ms for limiter '{}'",
+                    delayMs, limiterName);
+        }
+
+        try {
+            Thread.sleep(delayMs);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.warn("Adaptive throttle delay interrupted for limiter '{}'", limiterName);
+        }
     }
     
     /**

@@ -169,7 +169,7 @@ class LimiterEngineTest {
         
         // Then: Request denied (fail closed)
         assertFalse(decision.isAllowed());
-        assertThat(decision.getReason()).contains("Rate limiter unavailable");
+        assertThat(decision.getReason()).contains("Rate limiter temporarily unavailable");
     }
     
     @Test
