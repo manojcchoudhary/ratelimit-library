@@ -1,7 +1,0 @@
-com/lycosoft/ratelimit/quarkus/config/RateLimitProducer$1.class
-com/lycosoft/ratelimit/quarkus/annotation/RateLimits.class
-com/lycosoft/ratelimit/quarkus/interceptor/RateLimitInterceptor$RateLimitExceededException.class
-com/lycosoft/ratelimit/quarkus/config/RateLimitProducer.class
-com/lycosoft/ratelimit/quarkus/interceptor/RateLimitInterceptor.class
-com/lycosoft/ratelimit/quarkus/handler/RateLimitExceptionMapper.class
-com/lycosoft/ratelimit/quarkus/annotation/RateLimit.class
