@@ -68,22 +68,22 @@ The Spring Boot adapter provides seamless integration with annotation-driven rat
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-adapter-spring</artifactId>
-    <version>1.1.0</version>
+    <version>0.1.1-alpha</version>
 </dependency>
 
 <!-- For Redis storage (optional) -->
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-spi-redis</artifactId>
-    <version>1.1.0</version>
+    <version>0.1.1-alpha</version>
 </dependency>
 ```
 
 **Gradle:**
 
 ```groovy
-implementation 'com.lycosoft:rl-adapter-spring:1.1.0'
-implementation 'com.lycosoft:rl-spi-redis:1.1.0'  // Optional
+implementation 'com.lycosoft:rl-adapter-spring:0.1.1-alpha'
+implementation 'com.lycosoft:rl-spi-redis:0.1.1-alpha'  // Optional
 ```
 
 ### 2. Apply Annotation
@@ -453,7 +453,7 @@ public class RateLimitConfig {
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-spi-redis</artifactId>
-    <version>1.1.0</version>
+    <version>0.1.1-alpha</version>
 </dependency>
 ```
 
@@ -1149,4 +1149,4 @@ public class RateLimitAutoConfiguration {
 
 ---
 
-**Documentation Version:** 1.1.0
+**Documentation Version:** 0.1.1-alpha

@@ -65,30 +65,30 @@ The `rl-core` module provides a framework-agnostic rate limiting solution with z
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-core</artifactId>
-    <version>1.1.0</version>
+    <version>0.1.1-alpha</version>
 </dependency>
 
 <!-- In-memory storage (optional) -->
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-spi-caffeine</artifactId>
-    <version>1.1.0</version>
+    <version>0.1.1-alpha</version>
 </dependency>
 
 <!-- Redis storage (optional) -->
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-spi-redis</artifactId>
-    <version>1.1.0</version>
+    <version>0.1.1-alpha</version>
 </dependency>
 ```
 
 **Gradle:**
 
 ```groovy
-implementation 'com.lycosoft:rl-core:1.1.0'
-implementation 'com.lycosoft:rl-spi-caffeine:1.1.0'  // Optional
-implementation 'com.lycosoft:rl-spi-redis:1.1.0'     // Optional
+implementation 'com.lycosoft:rl-core:0.1.1-alpha'
+implementation 'com.lycosoft:rl-spi-caffeine:0.1.1-alpha'  // Optional
+implementation 'com.lycosoft:rl-spi-redis:0.1.1-alpha'     // Optional
 ```
 
 ### Quick Start
@@ -1124,4 +1124,4 @@ public interface MetricsExporter {
 
 ---
 
-**Documentation Version:** 1.1.0
+**Documentation Version:** 0.1.1-alpha

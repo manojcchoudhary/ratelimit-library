@@ -76,7 +76,7 @@ The Rate Limiting Library is a production-grade, high-performance rate limiting 
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-adapter-spring</artifactId>
-    <version>1.1.0</version>
+    <version>0.1.1-alpha</version>
 </dependency>
 ```
 
@@ -110,7 +110,7 @@ ratelimit:
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-adapter-quarkus</artifactId>
-    <version>1.1.0</version>
+    <version>0.1.1-alpha</version>
 </dependency>
 ```
 
@@ -1466,5 +1466,5 @@ public interface RateLimitDecision {
 
 ---
 
-**Documentation Version:** 1.1.0
+**Documentation Version:** 0.1.1-alpha
 **Last Updated:** 2024

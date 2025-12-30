@@ -69,22 +69,22 @@ The Quarkus adapter provides seamless integration with CDI interceptors, Vert.x 
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-adapter-quarkus</artifactId>
-    <version>1.1.0</version>
+    <version>0.1.1-alpha</version>
 </dependency>
 
 <!-- For Redis storage (optional) -->
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-spi-redis</artifactId>
-    <version>1.1.0</version>
+    <version>0.1.1-alpha</version>
 </dependency>
 ```
 
 **Gradle:**
 
 ```groovy
-implementation 'com.lycosoft:rl-adapter-quarkus:1.1.0'
-implementation 'com.lycosoft:rl-spi-redis:1.1.0'  // Optional
+implementation 'com.lycosoft:rl-adapter-quarkus:0.1.1-alpha'
+implementation 'com.lycosoft:rl-spi-redis:0.1.1-alpha'  // Optional
 ```
 
 ### 2. Apply Annotation
@@ -406,7 +406,7 @@ public class StorageProducer {
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-spi-redis</artifactId>
-    <version>1.1.0</version>
+    <version>0.1.1-alpha</version>
 </dependency>
 <dependency>
     <groupId>io.quarkus</groupId>
@@ -1136,4 +1136,4 @@ public interface RateLimitConfig {
 
 ---
 
-**Documentation Version:** 1.1.0
+**Documentation Version:** 0.1.1-alpha
