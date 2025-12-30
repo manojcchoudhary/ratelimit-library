@@ -113,16 +113,17 @@ public final class RateLimitContext {
         }
         
         public RateLimitContext build() {
-            Objects.requireNonNull(keyExpression, "keyExpression cannot be null");
-            
             // Set defaults
+            if (keyExpression == null) {
+                keyExpression = "";
+            }
             if (methodArguments == null) {
                 methodArguments = new Object[0];
             }
             if (remoteAddress == null) {
                 remoteAddress = "unknown";
             }
-            
+
             return new RateLimitContext(this);
         }
     }
