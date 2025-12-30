@@ -1,5 +1,7 @@
 package com.lycosoft.ratelimit.engine;
 
+import com.lycosoft.ratelimit.constants.RateLimitDefaultValue;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,7 +35,7 @@ public final class RateLimitContext {
             : new Object[0];
         // Defensive copy to prevent external mutation of internal state
         this.requestHeaders = builder.requestHeaders != null
-            ? Collections.unmodifiableMap(new HashMap<>(builder.requestHeaders))
+            ? Map.copyOf(builder.requestHeaders)
             : Collections.emptyMap();
         this.methodSignature = builder.methodSignature;
     }
@@ -75,7 +77,7 @@ public final class RateLimitContext {
     }
     
     public static class Builder {
-        private String keyExpression;
+        private String keyExpression = RateLimitDefaultValue.KEY_EXPRESSION;
         private Object principal;
         private String remoteAddress;
         private Object[] methodArguments;

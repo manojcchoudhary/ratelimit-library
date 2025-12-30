@@ -1,6 +1,7 @@
 package com.lycosoft.ratelimit.spring.annotation;
 
 import com.lycosoft.ratelimit.config.RateLimitConfig;
+import com.lycosoft.ratelimit.constants.RateLimitDefaultValue;
 
 import java.lang.annotation.*;
 import java.util.concurrent.TimeUnit;
@@ -74,7 +75,7 @@ public @interface RateLimit {
      * 
      * @return the key expression
      */
-    String key() default "#ip";
+    String key() default RateLimitDefaultValue.KEY_EXPRESSION;
     
     /**
      * The rate limiting algorithm to use.

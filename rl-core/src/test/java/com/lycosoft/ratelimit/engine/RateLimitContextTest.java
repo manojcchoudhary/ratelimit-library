@@ -152,12 +152,11 @@ class RateLimitContextTest {
     // ==================== Builder Validation Tests ====================
 
     @Test
-    void shouldRequireKeyExpression() {
-        assertThrows(NullPointerException.class, () ->
-            RateLimitContext.builder()
+    void shouldDefaultKeyExpressionToIp() {
+        RateLimitContext context = RateLimitContext.builder()
                 .remoteAddress("127.0.0.1")
-                .build()
-        );
+                .build();
+        assertThat(context.getKeyExpression()).isEqualTo("#ip");
     }
 
     @Test

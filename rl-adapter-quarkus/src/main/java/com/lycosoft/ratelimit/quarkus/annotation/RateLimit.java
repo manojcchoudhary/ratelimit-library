@@ -1,6 +1,7 @@
 package com.lycosoft.ratelimit.quarkus.annotation;
 
 import com.lycosoft.ratelimit.config.RateLimitConfig;
+import com.lycosoft.ratelimit.constants.RateLimitDefaultValue;
 import jakarta.interceptor.InterceptorBinding;
 
 import java.lang.annotation.*;
@@ -78,7 +79,7 @@ public @interface RateLimit {
      * @return the key expression
      */
     @jakarta.enterprise.util.Nonbinding
-    String key() default "#ip";
+    String key() default RateLimitDefaultValue.KEY_EXPRESSION;
     
     /**
      * The rate limiting algorithm to use.
