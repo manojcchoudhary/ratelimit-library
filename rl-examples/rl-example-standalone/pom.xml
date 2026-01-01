@@ -20,8 +20,9 @@
     <dependencies>
         <!-- Rate Limit Core (only) -->
         <dependency>
-            <groupId>com.lycosoft.ratelimit</groupId>
+            <groupId>com.lycosoft</groupId>
             <artifactId>rl-core</artifactId>
+            <version>${ratelimit.version}</version>
         </dependency>
         
         <!-- SLF4J Implementation -->
