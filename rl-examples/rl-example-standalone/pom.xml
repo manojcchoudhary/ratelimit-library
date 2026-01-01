@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.lycosoft.ratelimit</groupId>
         <artifactId>rl-examples</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>rl-example-standalone</artifactId>
