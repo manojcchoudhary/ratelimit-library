@@ -150,25 +150,42 @@ public final class RateLimitConfig {
             Objects.requireNonNull(algorithm, "algorithm cannot be null");
             Objects.requireNonNull(windowUnit, "windowUnit cannot be null");
             Objects.requireNonNull(failStrategy, "failStrategy cannot be null");
-            
-            if (requests <= 0) {
-                throw new IllegalArgumentException("requests must be positive");
-            }
-            if (window <= 0) {
-                throw new IllegalArgumentException("window must be positive");
-            }
-            
-            // Auto-calculate Token Bucket parameters if not set
+
+            // Algorithm-based validation
             if (algorithm == Algorithm.TOKEN_BUCKET) {
-                if (capacity == 0) {
-                    capacity = requests; // Default: capacity = requests
+                // TOKEN_BUCKET requires either (capacity + refillRate) OR (requests + window)
+                boolean hasTokenBucketParams = capacity > 0 && refillRate > 0;
+                boolean hasWindowParams = requests > 0 && window > 0;
+
+                if (!hasTokenBucketParams && !hasWindowParams) {
+                    throw new IllegalArgumentException(
+                        "TOKEN_BUCKET requires either (capacity + refillRate) or (requests + window)");
                 }
-                if (refillRate == 0.0) {
-                    // Default: refill rate = requests per window
+
+                // If only window params provided, derive token bucket params
+                if (!hasTokenBucketParams && hasWindowParams) {
+                    capacity = requests;
                     refillRate = (double) requests / windowUnit.toMillis(window);
                 }
+
+                // If only token bucket params provided, set sensible defaults for window params
+                if (hasTokenBucketParams && !hasWindowParams) {
+                    // Derive window from capacity/refillRate (time to refill bucket)
+                    requests = capacity;
+                    window = 1; // Default 1 second for TTL calculation
+                }
+            } else {
+                // SLIDING_WINDOW requires requests and window
+                if (requests <= 0) {
+                    throw new IllegalArgumentException(
+                        "SLIDING_WINDOW requires 'requests' to be positive");
+                }
+                if (window <= 0) {
+                    throw new IllegalArgumentException(
+                        "SLIDING_WINDOW requires 'window' to be positive");
+                }
             }
-            
+
             return new RateLimitConfig(this);
         }
     }
