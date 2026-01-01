@@ -45,6 +45,13 @@
             <version>${ratelimit.version}</version>
         </dependency>
 
+        <!-- Rate Limit Redis Storage (for distributed benchmarks) -->
+        <dependency>
+            <groupId>com.lycosoft</groupId>
+            <artifactId>rl-spi-redis</artifactId>
+            <version>${ratelimit.version}</version>
+        </dependency>
+
         <!-- JMH Core -->
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
