@@ -174,15 +174,15 @@ public final class RateLimitConfig {
                     requests = capacity;
                     window = 1; // Default 1 second for TTL calculation
                 }
-            } else {
-                // SLIDING_WINDOW requires requests and window
+            } else if (algorithm == Algorithm.SLIDING_WINDOW || algorithm == Algorithm.FIXED_WINDOW) {
+                // SLIDING_WINDOW and FIXED_WINDOW require requests and window
                 if (requests <= 0) {
                     throw new IllegalArgumentException(
-                        "SLIDING_WINDOW requires 'requests' to be positive");
+                        algorithm.name() + " requires 'requests' to be positive");
                 }
                 if (window <= 0) {
                     throw new IllegalArgumentException(
-                        "SLIDING_WINDOW requires 'window' to be positive");
+                        algorithm.name() + " requires 'window' to be positive");
                 }
             }
 
@@ -199,12 +199,19 @@ public final class RateLimitConfig {
          * Good for: APIs that need burst capacity.
          */
         TOKEN_BUCKET,
-        
+
         /**
          * Sliding Window Counter algorithm - high accuracy.
          * Good for: Strict rate limiting without burst allowance.
          */
-        SLIDING_WINDOW
+        SLIDING_WINDOW,
+
+        /**
+         * Fixed Window Counter algorithm - simple and fast.
+         * Good for: Simple rate limiting with predictable reset times.
+         * Note: Can allow 2x burst at window boundaries.
+         */
+        FIXED_WINDOW
     }
     
     /**
