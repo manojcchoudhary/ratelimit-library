@@ -39,11 +39,12 @@ class TieredStorageFailoverTest {
 
     @BeforeEach
     void setUp() {
+        // refillRate is in tokens per millisecond: 0.01 = 10 tokens/second
         config = RateLimitConfig.builder()
                 .name("failover-test")
                 .algorithm(RateLimitConfig.Algorithm.TOKEN_BUCKET)
                 .capacity(100)
-                .refillRate(10.0)
+                .refillRate(0.01)  // 10 tokens per second
                 .requests(100)
                 .window(1)
                 .build();
@@ -245,7 +246,7 @@ class TieredStorageFailoverTest {
                     .name("fail-closed-test")
                     .algorithm(RateLimitConfig.Algorithm.TOKEN_BUCKET)
                     .capacity(100)
-                    .refillRate(10.0)
+                    .refillRate(0.01)  // 10 tokens per second
                     .requests(100)
                     .window(1)
                     .failStrategy(RateLimitConfig.FailStrategy.FAIL_CLOSED)
@@ -422,7 +423,7 @@ class TieredStorageFailoverTest {
                     .name("recovery-test")
                     .algorithm(RateLimitConfig.Algorithm.TOKEN_BUCKET)
                     .capacity(10000)
-                    .refillRate(1000.0)
+                    .refillRate(1.0)  // 1000 tokens per second
                     .requests(10000)
                     .window(1)
                     .build();
