@@ -37,12 +37,12 @@ public class RateLimitWebFilter implements WebFilter {
         // Get client IP (non-blocking)
         String clientIp = getClientIp(exchange);
         
-        // Build rate limit config for this path (SLIDING_WINDOW for strict limiting)
+        // Build rate limit config for this path (FIXED_WINDOW for simple limiting)
         RateLimitConfig config = RateLimitConfig.builder()
             .name("reactive-" + path.replaceAll("/", "-"))
             .requests(10)
             .window(60)
-            .algorithm(RateLimitConfig.Algorithm.SLIDING_WINDOW)
+            .algorithm(RateLimitConfig.Algorithm.FIXED_WINDOW)
             .build();
         
         // Build context

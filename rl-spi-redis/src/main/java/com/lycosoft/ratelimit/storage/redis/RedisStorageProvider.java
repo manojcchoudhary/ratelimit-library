@@ -45,6 +45,7 @@ public class RedisStorageProvider implements StorageProvider {
     // Script names
     private static final String TOKEN_BUCKET_SCRIPT = LuaScripts.TOKEN_BUCKET;
     private static final String SLIDING_WINDOW_SCRIPT = LuaScripts.SLIDING_WINDOW;
+    private static final String FIXED_WINDOW_SCRIPT = LuaScripts.FIXED_WINDOW;
 
     private final boolean useRedisTime;
 
@@ -55,6 +56,9 @@ public class RedisStorageProvider implements StorageProvider {
             ThreadLocal.withInitial(() -> new String[5]);
 
     private static final ThreadLocal<String[]> SLIDING_WINDOW_ARGS_BUFFER =
+            ThreadLocal.withInitial(() -> new String[4]);  // 4 elements: limit, window_size, current_time, ttl
+
+    private static final ThreadLocal<String[]> FIXED_WINDOW_ARGS_BUFFER =
             ThreadLocal.withInitial(() -> new String[4]);  // 4 elements: limit, window_size, current_time, ttl
 
     // Atomic cache entry to prevent non-atomic reads of cachedTime and cacheExpiry
@@ -76,7 +80,8 @@ public class RedisStorageProvider implements StorageProvider {
         try (Jedis jedis = jedisPool.getResource()) {
             tempScriptManager.loadScript(jedis, TOKEN_BUCKET_SCRIPT);
             tempScriptManager.loadScript(jedis, SLIDING_WINDOW_SCRIPT);
-            logger.info("RedisStorageProvider initialized with {} scripts loaded", 2);
+            tempScriptManager.loadScript(jedis, FIXED_WINDOW_SCRIPT);
+            logger.info("RedisStorageProvider initialized with {} scripts loaded", 3);
         } catch (Exception e) {
             logger.error("Failed to pre-load Lua scripts", e);
             throw new RuntimeException("Redis initialization failed", e);
@@ -155,11 +160,12 @@ public class RedisStorageProvider implements StorageProvider {
                 break;
 
             case SLIDING_WINDOW:
+            case FIXED_WINDOW:
                 if (config.getRequests() <= 0) {
-                    throw new IllegalArgumentException("Sliding window requests must be positive");
+                    throw new IllegalArgumentException(config.getAlgorithm() + " requests must be positive");
                 }
                 if (config.getWindowMillis() <= 0) {
-                    throw new IllegalArgumentException("Sliding window duration must be positive");
+                    throw new IllegalArgumentException(config.getAlgorithm() + " duration must be positive");
                 }
                 break;
         }
@@ -168,7 +174,7 @@ public class RedisStorageProvider implements StorageProvider {
             Object result = switch (config.getAlgorithm()) {
                 case TOKEN_BUCKET -> executeTokenBucketScript(jedis, key, config, currentTime);
                 case SLIDING_WINDOW -> executeSlidingWindowScript(jedis, key, config, currentTime);
-                default -> throw new IllegalArgumentException("Unsupported algorithm: " + config.getAlgorithm());
+                case FIXED_WINDOW -> executeFixedWindowScript(jedis, key, config, currentTime);
             };
 
             // Calculate duration AFTER the actual Redis operation
@@ -284,6 +290,30 @@ public class RedisStorageProvider implements StorageProvider {
         args[3] = String.valueOf(config.getTtl()); // ttl (fixed: was incorrectly at index 4)
 
         return scriptManager.evalsha(jedis, SLIDING_WINDOW_SCRIPT, keys, args);
+    }
+
+    /**
+     * Executes the Fixed Window Lua script.
+     *
+     * @param jedis       the Redis connection
+     * @param key         the rate limit key
+     * @param config      the rate limit configuration
+     * @param currentTime the current time in milliseconds
+     * @return the script result: [allowed, remaining]
+     */
+    private Object executeFixedWindowScript(Jedis jedis, String key,
+                                            RateLimitConfig config, long currentTime) {
+
+        String[] keys = KEYS_BUFFER.get();
+        keys[0] = key;
+
+        String[] args = FIXED_WINDOW_ARGS_BUFFER.get();
+        args[0] = String.valueOf(config.getRequests()); // limit
+        args[1] = String.valueOf(config.getWindowMillis()); // window_size
+        args[2] = String.valueOf(currentTime); // current_time
+        args[3] = String.valueOf(config.getTtl()); // ttl
+
+        return scriptManager.evalsha(jedis, FIXED_WINDOW_SCRIPT, keys, args);
     }
 
     @Override
