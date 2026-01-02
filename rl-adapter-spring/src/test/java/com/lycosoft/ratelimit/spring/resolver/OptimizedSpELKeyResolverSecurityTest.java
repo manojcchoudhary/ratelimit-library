@@ -324,14 +324,14 @@ class OptimizedSpELKeyResolverSecurityTest {
         }
 
         @Test
-        @DisplayName("Should handle null expression")
+        @DisplayName("Should reject null expression at context build time")
         void shouldHandleNullExpression() {
-            RateLimitContext context = RateLimitContext.builder()
+            // RateLimitContext requires non-null keyExpression
+            assertThatThrownBy(() -> RateLimitContext.builder()
                     .keyExpression(null)
-                    .build();
-
-            String result = resolver.resolveKey(context);
-            assertThat(result).isEqualTo("global");
+                    .build())
+                    .isInstanceOf(NullPointerException.class)
+                    .hasMessageContaining("keyExpression cannot be null");
         }
 
         @Test
