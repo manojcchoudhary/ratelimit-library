@@ -86,7 +86,7 @@ public class RedisBenchmark {
             }
 
             // Initialize Redis storage
-            redisStorage = new RedisStorageProvider(jedisPool);
+            redisStorage = new RedisStorageProvider(jedisPool, true);
 
             // Tiered: Redis L1 + Caffeine L2
             tieredRedisWithCaffeine = new TieredStorageProvider(
