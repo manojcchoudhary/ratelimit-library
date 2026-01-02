@@ -29,14 +29,13 @@ A production-grade, high-performance rate limiting library for Java applications
 
 | Module | Description | Size |
 |--------|-------------|------|
-| `rl-core` | Core algorithms, SPIs, security, resilience | ~2,100 LOC |
-| `rl-spi-redis` | Redis storage with versioned Lua scripts | ~570 LOC |
-| `rl-spi-caffeine` | High-performance in-memory storage | ~280 LOC |
-| `rl-adapter-spring` | Spring Boot integration with AOP | ~1,093 LOC |
-| `rl-adapter-quarkus` | Quarkus CDI integration | ~562 LOC |
-| `rl-benchmarks` | JMH performance benchmarks | ~1,700 LOC |
+| `rl-core` | Core algorithms, SPIs, security, resilience | ~10,800 LOC |
+| `rl-spi-redis` | Redis storage with versioned Lua scripts | ~770 LOC |
+| `rl-spi-caffeine` | High-performance in-memory storage | ~800 LOC |
+| `rl-adapter-spring` | Spring Boot integration with AOP | ~2,760 LOC |
+| `rl-adapter-quarkus` | Quarkus CDI integration | ~800 LOC |
 
-**Total**: ~9,100 lines of code
+**Total**: ~15,900 lines of production code
 
 ## 🏃 Quick Start
 
