@@ -63,7 +63,8 @@ import java.util.stream.Collectors;
 public class BenchmarkRunner {
 
     private static final DecimalFormat LATENCY_FORMAT = new DecimalFormat("#,##0.000");
-    private static final DecimalFormat THROUGHPUT_FORMAT = new DecimalFormat("#,###,###");
+    private static final DecimalFormat THROUGHPUT_FORMAT = new DecimalFormat("#,##0.000");
+    private static final DecimalFormat LARGE_THROUGHPUT_FORMAT = new DecimalFormat("#,###,###");
     private static final String BENCHMARK_MD_PATH = "BENCHMARK.md";
 
     public static void main(String[] args) throws RunnerException {
@@ -229,6 +230,9 @@ public class BenchmarkRunner {
             writer.println();
             writer.println("Production-recommended configuration with distributed Redis as primary and local Caffeine as fallback:");
             writer.println();
+            writer.println("> **Note**: `tiered_healthCheck` and `tiered_diagnostics` query both Redis (L1) and Caffeine (L2),");
+            writer.println("> so their latency includes Redis network round-trip (~500μs each). This is expected behavior.");
+            writer.println();
             writer.println("| Benchmark | Avg Latency | Throughput |");
             writer.println("|-----------|-------------|------------|");
 
@@ -323,11 +327,28 @@ public class BenchmarkRunner {
             // Notes section
             writer.println("## Notes");
             writer.println();
+            writer.println("### Understanding the Results");
+            writer.println();
             writer.println("- **Throughput** is measured in operations per time unit (higher is better)");
             writer.println("- **Latency** is measured in time per operation (lower is better)");
             writer.println("- Results may vary based on hardware, JVM version, and system load");
+            writer.println();
+            writer.println("### Performance Expectations");
+            writer.println();
+            writer.println("| Storage Type | Expected Latency | Notes |");
+            writer.println("|--------------|------------------|-------|");
+            writer.println("| InMemory | < 50 ns | Fastest, no synchronization overhead |");
+            writer.println("| Caffeine | < 500 ns | Thread-safe with minimal overhead |");
+            writer.println("| Tiered (local) | < 1 μs | Small overhead for L1/L2 abstraction |");
+            writer.println("| Redis | ~500 μs | Network round-trip dominates |");
+            writer.println("| Tiered (Redis+Caffeine) | ~500 μs | Redis latency + minimal local overhead |");
+            writer.println();
+            writer.println("### Important Considerations");
+            writer.println();
             writer.println("- Redis benchmarks require a running Redis instance");
             writer.println("- Tiered storage uses Redis as L1 (distributed) and Caffeine as L2 (local fallback)");
+            writer.println("- Concurrent benchmarks use 8 threads to simulate real-world contention");
+            writer.println("- Health check and diagnostics for tiered Redis+Caffeine query both layers");
 
             System.out.println("Generated " + BENCHMARK_MD_PATH);
 
@@ -347,7 +368,12 @@ public class BenchmarkRunner {
 
     private static String formatScore(double score, String unit) {
         if (unit.contains("ops")) {
-            return THROUGHPUT_FORMAT.format(score);
+            // Use appropriate format based on magnitude
+            if (score >= 1000) {
+                return LARGE_THROUGHPUT_FORMAT.format(score);
+            } else {
+                return THROUGHPUT_FORMAT.format(score);
+            }
         } else {
             return LATENCY_FORMAT.format(score);
         }
