@@ -7,7 +7,7 @@
 
     <groupId>com.lycosoft</groupId>
     <artifactId>ratelimit-parent</artifactId>
-    <version>0.1.1-alpha</version>
+    <version>0.1.2-alpha</version>
     <packaging>pom</packaging>
 
     <name>Rate Limiting Library</name>
@@ -217,7 +217,6 @@
                     <extensions>true</extensions>
                     <configuration>
                         <publishingServerId>central</publishingServerId>
-                        <tokenAuth>true</tokenAuth>
                         <autoPublish>true</autoPublish>
                     </configuration>
                 </plugin>
@@ -271,7 +270,6 @@
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>central</publishingServerId>
-                            <tokenAuth>true</tokenAuth>
                             <autoPublish>true</autoPublish>
                         </configuration>
                     </plugin>
