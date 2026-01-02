@@ -56,6 +56,7 @@ public class SpELBenchmark {
     private RateLimitContext contextWithHeaders;
     private RateLimitContext contextWithIp;
     private RateLimitContext staticKeyContext;
+    private RateLimitContext complexContext;
 
     // Evaluation context for raw SpEL tests
     private SimpleEvaluationContext evalContext;
@@ -101,6 +102,13 @@ public class SpELBenchmark {
         staticKeyContext = RateLimitContext.builder()
                 .keyExpression("static-key-no-spel")
                 .remoteAddress("127.0.0.1")
+                .build();
+
+        // Complex context (multi-variable concatenation)
+        complexContext = RateLimitContext.builder()
+                .keyExpression("'prefix_' + #user + '_' + #ip + '_suffix'")
+                .principal("complex-user")
+                .remoteAddress("10.20.30.40")
                 .build();
 
         // Setup evaluation context for raw SpEL tests
@@ -194,11 +202,6 @@ public class SpELBenchmark {
     @Benchmark
     @OutputTimeUnit(TimeUnit.MICROSECONDS)
     public void complexSpEL_multiVariable(Blackhole bh) {
-        RateLimitContext complexContext = RateLimitContext.builder()
-                .keyExpression("'prefix_' + #user + '_' + #ip + '_suffix'")
-                .principal("complex-user")
-                .remoteAddress("10.20.30.40")
-                .build();
         bh.consume(optimizedResolver.resolveKey(complexContext));
     }
 

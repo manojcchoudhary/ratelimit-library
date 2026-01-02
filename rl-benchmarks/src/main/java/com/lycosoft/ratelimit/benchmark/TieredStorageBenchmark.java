@@ -45,7 +45,8 @@ public class TieredStorageBenchmark {
     private TieredStorageProvider tieredInMemoryInMemory;
     private TieredStorageProvider tieredWithFailingL1;
 
-    private RateLimitConfig config;
+    private RateLimitConfig tokenBucketConfig;
+    private RateLimitConfig slidingWindowConfig;
     private String[] keys;
     private static final int KEY_COUNT = 1000;
 
@@ -77,14 +78,23 @@ public class TieredStorageBenchmark {
                 RateLimitConfig.FailStrategy.FAIL_OPEN
         );
 
+        // Token Bucket config
         // refillRate is tokens per millisecond: 0.01 = 10 tokens/second
-        config = RateLimitConfig.builder()
-                .name("tiered-benchmark")
+        tokenBucketConfig = RateLimitConfig.builder()
+                .name("tiered-benchmark-tb")
                 .algorithm(RateLimitConfig.Algorithm.TOKEN_BUCKET)
                 .capacity(100)
                 .refillRate(0.01)  // 10 tokens per second
                 .requests(100)
                 .window(1)
+                .build();
+
+        // Sliding Window config
+        slidingWindowConfig = RateLimitConfig.builder()
+                .name("tiered-benchmark-sw")
+                .algorithm(RateLimitConfig.Algorithm.SLIDING_WINDOW)
+                .requests(100)
+                .window(60)
                 .build();
 
         // Pre-generate keys
@@ -101,7 +111,7 @@ public class TieredStorageBenchmark {
      */
     @Benchmark
     public void baseline_caffeineOnly(Blackhole bh) {
-        bh.consume(caffeineOnly.tryAcquire("baseline-key", config, System.currentTimeMillis()));
+        bh.consume(caffeineOnly.tryAcquire("baseline-key", tokenBucketConfig, System.currentTimeMillis()));
     }
 
     /**
@@ -109,26 +119,42 @@ public class TieredStorageBenchmark {
      */
     @Benchmark
     public void baseline_inMemoryOnly(Blackhole bh) {
-        bh.consume(inMemoryOnly.tryAcquire("baseline-key", config, System.currentTimeMillis()));
+        bh.consume(inMemoryOnly.tryAcquire("baseline-key", tokenBucketConfig, System.currentTimeMillis()));
     }
 
     // ==================== TIERED STORAGE BENCHMARKS ====================
 
     /**
-     * Tiered: Caffeine L1 + Caffeine L2 (normal operation).
+     * Tiered: Caffeine L1 + Caffeine L2 (normal operation, Token Bucket).
      * Measures overhead of tiering abstraction.
      */
     @Benchmark
-    public void tiered_caffeine_caffeine_singleKey(Blackhole bh) {
-        bh.consume(tieredCaffeineCaffeine.tryAcquire("hot-key", config, System.currentTimeMillis()));
+    public void tiered_caffeine_caffeine_tokenBucket(Blackhole bh) {
+        bh.consume(tieredCaffeineCaffeine.tryAcquire("hot-key-tb", tokenBucketConfig, System.currentTimeMillis()));
     }
 
     /**
-     * Tiered: InMemory L1 + InMemory L2 (fastest tiered).
+     * Tiered: Caffeine L1 + Caffeine L2 (Sliding Window).
      */
     @Benchmark
-    public void tiered_inmemory_inmemory_singleKey(Blackhole bh) {
-        bh.consume(tieredInMemoryInMemory.tryAcquire("hot-key", config, System.currentTimeMillis()));
+    public void tiered_caffeine_caffeine_slidingWindow(Blackhole bh) {
+        bh.consume(tieredCaffeineCaffeine.tryAcquire("hot-key-sw", slidingWindowConfig, System.currentTimeMillis()));
+    }
+
+    /**
+     * Tiered: InMemory L1 + InMemory L2 (fastest tiered, Token Bucket).
+     */
+    @Benchmark
+    public void tiered_inmemory_inmemory_tokenBucket(Blackhole bh) {
+        bh.consume(tieredInMemoryInMemory.tryAcquire("hot-key-tb", tokenBucketConfig, System.currentTimeMillis()));
+    }
+
+    /**
+     * Tiered: InMemory L1 + InMemory L2 (Sliding Window).
+     */
+    @Benchmark
+    public void tiered_inmemory_inmemory_slidingWindow(Blackhole bh) {
+        bh.consume(tieredInMemoryInMemory.tryAcquire("hot-key-sw", slidingWindowConfig, System.currentTimeMillis()));
     }
 
     /**
@@ -137,7 +163,7 @@ public class TieredStorageBenchmark {
     @Benchmark
     public void tiered_randomKeys(Blackhole bh) {
         int index = ThreadLocalRandom.current().nextInt(KEY_COUNT);
-        bh.consume(tieredCaffeineCaffeine.tryAcquire(keys[index], config, System.currentTimeMillis()));
+        bh.consume(tieredCaffeineCaffeine.tryAcquire(keys[index], tokenBucketConfig, System.currentTimeMillis()));
     }
 
     // ==================== FAILOVER BENCHMARKS ====================
@@ -148,7 +174,7 @@ public class TieredStorageBenchmark {
      */
     @Benchmark
     public void tiered_l1Failure_l2Fallback(Blackhole bh) {
-        bh.consume(tieredWithFailingL1.tryAcquire("failover-key", config, System.currentTimeMillis()));
+        bh.consume(tieredWithFailingL1.tryAcquire("failover-key", tokenBucketConfig, System.currentTimeMillis()));
     }
 
     // ==================== CONCURRENT ACCESS ====================
@@ -157,19 +183,19 @@ public class TieredStorageBenchmark {
      * Tiered: Concurrent access to same key.
      */
     @Benchmark
-    @Threads(4)
+    @Threads(8)
     public void tiered_concurrent_sameKey(Blackhole bh) {
-        bh.consume(tieredCaffeineCaffeine.tryAcquire("contended-key", config, System.currentTimeMillis()));
+        bh.consume(tieredCaffeineCaffeine.tryAcquire("contended-key", tokenBucketConfig, System.currentTimeMillis()));
     }
 
     /**
      * Tiered: Concurrent access to different keys.
      */
     @Benchmark
-    @Threads(4)
+    @Threads(8)
     public void tiered_concurrent_differentKeys(Blackhole bh) {
         String key = "thread-" + Thread.currentThread().getId();
-        bh.consume(tieredCaffeineCaffeine.tryAcquire(key, config, System.currentTimeMillis()));
+        bh.consume(tieredCaffeineCaffeine.tryAcquire(key, tokenBucketConfig, System.currentTimeMillis()));
     }
 
     // ==================== CIRCUIT BREAKER OVERHEAD ====================
@@ -181,7 +207,7 @@ public class TieredStorageBenchmark {
     public void circuitBreaker_closedState(Blackhole bh) {
         // Circuit is closed, should have minimal overhead
         bh.consume(tieredCaffeineCaffeine.getCircuitState());
-        bh.consume(tieredCaffeineCaffeine.tryAcquire("cb-key", config, System.currentTimeMillis()));
+        bh.consume(tieredCaffeineCaffeine.tryAcquire("cb-key", tokenBucketConfig, System.currentTimeMillis()));
     }
 
     /**
