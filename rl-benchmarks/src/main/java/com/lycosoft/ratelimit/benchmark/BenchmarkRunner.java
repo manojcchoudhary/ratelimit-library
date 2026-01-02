@@ -85,9 +85,11 @@ public class BenchmarkRunner {
         }
 
         // Build benchmark options
+        // Increased warmup/measurement iterations for statistical stability
+        // (reduces error margins like ±8.161 seen in baseline_caffeine)
         ChainedOptionsBuilder optionsBuilder = new OptionsBuilder()
-                .warmupIterations(2)
-                .measurementIterations(3)
+                .warmupIterations(5)
+                .measurementIterations(5)
                 .forks(1)
                 .resultFormat(ResultFormatType.JSON)
                 .result("benchmark-results.json");
