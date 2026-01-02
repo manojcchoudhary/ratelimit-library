@@ -34,8 +34,9 @@ A production-grade, high-performance rate limiting library for Java applications
 | `rl-spi-caffeine` | High-performance in-memory storage | ~280 LOC |
 | `rl-adapter-spring` | Spring Boot integration with AOP | ~1,093 LOC |
 | `rl-adapter-quarkus` | Quarkus CDI integration | ~562 LOC |
+| `rl-benchmarks` | JMH performance benchmarks | ~1,700 LOC |
 
-**Total**: ~7,400 lines of production code
+**Total**: ~9,100 lines of code
 
 ## 🏃 Quick Start
 
