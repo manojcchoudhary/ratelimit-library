@@ -8,8 +8,14 @@ import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
-import java.util.Collection;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Unified benchmark runner for all rate limit performance tests.
@@ -58,6 +64,7 @@ public class BenchmarkRunner {
 
     private static final DecimalFormat LATENCY_FORMAT = new DecimalFormat("#,##0.000");
     private static final DecimalFormat THROUGHPUT_FORMAT = new DecimalFormat("#,###,###");
+    private static final String BENCHMARK_MD_PATH = "BENCHMARK.md";
 
     public static void main(String[] args) throws RunnerException {
         System.out.println();
@@ -102,8 +109,12 @@ public class BenchmarkRunner {
         // Print formatted results
         printFormattedResults(results);
 
-        // Print summary table for README
-        printReadmeTable(results);
+        // Generate BENCHMARK.md file
+        generateBenchmarkMarkdown(results, redisAvailable);
+
+        System.out.println();
+        System.out.println("Results saved to: benchmark-results.json");
+        System.out.println("Markdown report saved to: " + BENCHMARK_MD_PATH);
     }
 
     private static boolean checkRedisAvailable() {
@@ -141,31 +152,193 @@ public class BenchmarkRunner {
         System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
     }
 
-    private static void printReadmeTable(Collection<RunResult> results) {
-        System.out.println();
-        System.out.println("## Benchmark Results (for README.md)");
-        System.out.println();
-        System.out.println("| Storage Type | Algorithm | P99 Latency | Throughput |");
-        System.out.println("|--------------|-----------|-------------|------------|");
+    private static void generateBenchmarkMarkdown(Collection<RunResult> results, boolean redisAvailable) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(BENCHMARK_MD_PATH))) {
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        for (RunResult result : results) {
-            String benchmark = result.getParams().getBenchmark();
-            double score = result.getPrimaryResult().getScore();
-            String unit = result.getPrimaryResult().getScoreUnit();
+            writer.println("# Performance Benchmarks");
+            writer.println();
+            writer.println("This document contains the latest benchmark results for the Rate Limiting Library.");
+            writer.println();
+            writer.println("> **Last Updated**: " + timestamp);
+            writer.println(">");
+            writer.println("> **Environment**: Java " + System.getProperty("java.version") + ", " +
+                    System.getProperty("os.name") + " " + System.getProperty("os.arch"));
+            writer.println(">");
+            writer.println("> **Redis Available**: " + (redisAvailable ? "Yes" : "No"));
+            writer.println();
 
-            // Parse benchmark name to extract storage and algorithm
-            String storage = extractStorage(benchmark);
-            String algorithm = extractAlgorithm(benchmark);
-            String formattedScore = formatScoreForTable(score, unit);
+            // Group results by benchmark class
+            Map<String, List<RunResult>> groupedResults = results.stream()
+                    .collect(Collectors.groupingBy(r -> {
+                        String benchmark = r.getParams().getBenchmark();
+                        String className = benchmark.substring(0, benchmark.lastIndexOf('.'));
+                        return className.substring(className.lastIndexOf('.') + 1);
+                    }));
 
-            if (!storage.isEmpty()) {
-                System.out.printf("| %s | %s | %s | - |%n",
-                        storage, algorithm, formattedScore);
+            // Summary section
+            writer.println("## Summary");
+            writer.println();
+            writer.println("| Category | Benchmark | Score | Unit |");
+            writer.println("|----------|-----------|------:|------|");
+
+            for (RunResult result : results) {
+                String benchmark = result.getParams().getBenchmark();
+                String className = extractClassName(benchmark);
+                String methodName = benchmark.substring(benchmark.lastIndexOf('.') + 1);
+                double score = result.getPrimaryResult().getScore();
+                String unit = result.getPrimaryResult().getScoreUnit();
+
+                writer.printf("| %s | %s | %s | %s |%n",
+                        className, methodName, formatScore(score, unit), unit);
             }
-        }
+            writer.println();
 
-        System.out.println();
-        System.out.println("Results saved to: benchmark-results.json");
+            // Detailed sections by category
+            writer.println("## Detailed Results");
+            writer.println();
+
+            // Storage Performance
+            writer.println("### Storage Performance");
+            writer.println();
+            writer.println("Comparison of different storage backends:");
+            writer.println();
+            writer.println("| Storage | Operation | Avg Latency | Throughput |");
+            writer.println("|---------|-----------|-------------|------------|");
+
+            for (RunResult result : results) {
+                String benchmark = result.getParams().getBenchmark();
+                if (benchmark.contains("Storage") || benchmark.contains("baseline")) {
+                    String methodName = benchmark.substring(benchmark.lastIndexOf('.') + 1);
+                    double score = result.getPrimaryResult().getScore();
+                    String unit = result.getPrimaryResult().getScoreUnit();
+                    String storage = extractStorage(benchmark);
+
+                    if (!storage.isEmpty()) {
+                        String latency = unit.contains("ops") ? "-" : formatScoreForTable(score, unit);
+                        String throughput = unit.contains("ops") ? formatScore(score, unit) + " " + unit : "-";
+                        writer.printf("| %s | %s | %s | %s |%n",
+                                storage, methodName, latency, throughput);
+                    }
+                }
+            }
+            writer.println();
+
+            // Tiered Storage Performance
+            writer.println("### Tiered Storage (Redis L1 + Caffeine L2)");
+            writer.println();
+            writer.println("Production-recommended configuration with distributed Redis as primary and local Caffeine as fallback:");
+            writer.println();
+            writer.println("| Benchmark | Avg Latency | Throughput |");
+            writer.println("|-----------|-------------|------------|");
+
+            for (RunResult result : results) {
+                String benchmark = result.getParams().getBenchmark();
+                if (benchmark.contains("tiered") || benchmark.contains("Tiered")) {
+                    String methodName = benchmark.substring(benchmark.lastIndexOf('.') + 1);
+                    double score = result.getPrimaryResult().getScore();
+                    String unit = result.getPrimaryResult().getScoreUnit();
+
+                    String latency = unit.contains("ops") ? "-" : formatScoreForTable(score, unit);
+                    String throughput = unit.contains("ops") ? formatScore(score, unit) + " " + unit : "-";
+                    writer.printf("| %s | %s | %s |%n", methodName, latency, throughput);
+                }
+            }
+            writer.println();
+
+            // SpEL Performance
+            writer.println("### SpEL Expression Performance");
+            writer.println();
+            writer.println("Comparison of SpEL compilation modes (validates 40× performance claim):");
+            writer.println();
+            writer.println("| Mode | Benchmark | Avg Latency | Throughput |");
+            writer.println("|------|-----------|-------------|------------|");
+
+            for (RunResult result : results) {
+                String benchmark = result.getParams().getBenchmark();
+                if (benchmark.contains("SpEL") || benchmark.contains("spel") || benchmark.contains("static")) {
+                    String methodName = benchmark.substring(benchmark.lastIndexOf('.') + 1);
+                    double score = result.getPrimaryResult().getScore();
+                    String unit = result.getPrimaryResult().getScoreUnit();
+
+                    String mode = methodName.contains("compiled") ? "Compiled" :
+                                  methodName.contains("interpreted") ? "Interpreted" :
+                                  methodName.contains("static") ? "Static" : "Other";
+
+                    String latency = unit.contains("ops") ? "-" : formatScoreForTable(score, unit);
+                    String throughput = unit.contains("ops") ? formatScore(score, unit) + " " + unit : "-";
+                    writer.printf("| %s | %s | %s | %s |%n", mode, methodName, latency, throughput);
+                }
+            }
+            writer.println();
+
+            // Algorithm Performance
+            writer.println("### Algorithm Performance");
+            writer.println();
+            writer.println("Pure algorithm performance without storage overhead:");
+            writer.println();
+            writer.println("| Algorithm | Benchmark | Avg Latency | Throughput |");
+            writer.println("|-----------|-----------|-------------|------------|");
+
+            for (RunResult result : results) {
+                String benchmark = result.getParams().getBenchmark();
+                if (benchmark.contains("TokenBucket") && !benchmark.contains("Storage")) {
+                    String methodName = benchmark.substring(benchmark.lastIndexOf('.') + 1);
+                    double score = result.getPrimaryResult().getScore();
+                    String unit = result.getPrimaryResult().getScoreUnit();
+
+                    String latency = unit.contains("ops") ? "-" : formatScoreForTable(score, unit);
+                    String throughput = unit.contains("ops") ? formatScore(score, unit) + " " + unit : "-";
+                    writer.printf("| Token Bucket | %s | %s | %s |%n", methodName, latency, throughput);
+                }
+            }
+            writer.println();
+
+            // Running Benchmarks section
+            writer.println("## Running Benchmarks");
+            writer.println();
+            writer.println("To run benchmarks yourself:");
+            writer.println();
+            writer.println("```bash");
+            writer.println("# Build the benchmark jar");
+            writer.println("mvn clean package -pl rl-benchmarks -am -DskipTests");
+            writer.println();
+            writer.println("# Run all benchmarks (without Redis)");
+            writer.println("java -jar rl-benchmarks/target/benchmarks.jar");
+            writer.println();
+            writer.println("# Run with Redis");
+            writer.println("docker run -d -p 6379:6379 redis:7-alpine");
+            writer.println("java -Dredis.host=localhost -Dredis.port=6379 \\");
+            writer.println("     -jar rl-benchmarks/target/benchmarks.jar");
+            writer.println();
+            writer.println("# Run specific benchmark");
+            writer.println("java -jar rl-benchmarks/target/benchmarks.jar StorageBenchmark");
+            writer.println("java -jar rl-benchmarks/target/benchmarks.jar TieredStorageBenchmark");
+            writer.println("java -jar rl-benchmarks/target/benchmarks.jar RedisBenchmark");
+            writer.println("java -jar rl-benchmarks/target/benchmarks.jar SpELBenchmark");
+            writer.println("java -jar rl-benchmarks/target/benchmarks.jar TokenBucketBenchmark");
+            writer.println("```");
+            writer.println();
+
+            // Notes section
+            writer.println("## Notes");
+            writer.println();
+            writer.println("- **Throughput** is measured in operations per time unit (higher is better)");
+            writer.println("- **Latency** is measured in time per operation (lower is better)");
+            writer.println("- Results may vary based on hardware, JVM version, and system load");
+            writer.println("- Redis benchmarks require a running Redis instance");
+            writer.println("- Tiered storage uses Redis as L1 (distributed) and Caffeine as L2 (local fallback)");
+
+            System.out.println("Generated " + BENCHMARK_MD_PATH);
+
+        } catch (IOException e) {
+            System.err.println("Failed to write " + BENCHMARK_MD_PATH + ": " + e.getMessage());
+        }
+    }
+
+    private static String extractClassName(String benchmark) {
+        String className = benchmark.substring(0, benchmark.lastIndexOf('.'));
+        return className.substring(className.lastIndexOf('.') + 1);
     }
 
     private static String truncate(String s, int maxLen) {

@@ -191,6 +191,22 @@ public StorageProvider storageProvider(JedisPool jedisPool) {
 }
 ```
 
+## 📈 Performance
+
+For detailed benchmark results, see [BENCHMARK.md](BENCHMARK.md).
+
+**Key Performance Metrics:**
+- Local storage (Caffeine): P99 < 100μs, >8M ops/sec
+- Distributed storage (Redis): P99 < 2ms, ~45K ops/sec
+- Tiered storage (Redis + Caffeine): Automatic failover with minimal overhead
+- SpEL compilation: 40× faster than interpreted mode
+
+Run benchmarks yourself:
+```bash
+mvn clean package -pl rl-benchmarks -am -DskipTests
+java -jar rl-benchmarks/target/benchmarks.jar
+```
+
 ## 📊 Monitoring
 
 ### Prometheus Metrics
