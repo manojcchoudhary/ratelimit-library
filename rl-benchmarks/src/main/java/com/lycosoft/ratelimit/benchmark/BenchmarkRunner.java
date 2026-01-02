@@ -4,6 +4,7 @@ import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
@@ -76,7 +77,7 @@ public class BenchmarkRunner {
         }
 
         // Build benchmark options
-        OptionsBuilder optionsBuilder = new OptionsBuilder()
+        ChainedOptionsBuilder optionsBuilder = new OptionsBuilder()
                 .warmupIterations(2)
                 .measurementIterations(3)
                 .forks(1)
