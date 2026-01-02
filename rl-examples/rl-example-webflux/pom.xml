@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.lycosoft.ratelimit</groupId>
         <artifactId>rl-examples</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>rl-example-webflux</artifactId>
@@ -26,12 +26,14 @@
 
         <!-- Rate Limit Library -->
         <dependency>
-            <groupId>com.lycosoft.ratelimit</groupId>
+            <groupId>com.lycosoft</groupId>
             <artifactId>rl-core</artifactId>
+            <version>${ratelimit.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.lycosoft.ratelimit</groupId>
+            <groupId>com.lycosoft</groupId>
             <artifactId>rl-spi-caffeine</artifactId>
+            <version>${ratelimit.version}</version>
         </dependency>
 
         <!-- Lombok -->

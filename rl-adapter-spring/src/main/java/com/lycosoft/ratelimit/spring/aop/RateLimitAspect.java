@@ -264,7 +264,13 @@ public class RateLimitAspect {
     
     /**
      * Builds rate limit configuration from annotation.
-     * 
+     *
+     * <p>Supports algorithm-specific validation:
+     * <ul>
+     *   <li>TOKEN_BUCKET: requires (capacity + refillRate) OR (requests + window)</li>
+     *   <li>SLIDING_WINDOW: requires (requests + window)</li>
+     * </ul>
+     *
      * @param rateLimit the rate limit annotation
      * @param joinPoint the join point
      * @return the rate limit configuration
@@ -277,24 +283,30 @@ public class RateLimitAspect {
             Method method = signature.getMethod();
             name = method.getDeclaringClass().getName() + "." + method.getName();
         }
-        
-        // Build configuration
+
+        // Build configuration with algorithm-specific parameters
         RateLimitConfig.Builder builder = RateLimitConfig.builder()
             .name(name)
             .algorithm(rateLimit.algorithm())
-            .requests(rateLimit.requests())
-            .window(rateLimit.window())
             .windowUnit(rateLimit.windowUnit())
             .failStrategy(rateLimit.failStrategy());
-        
-        // Optional: capacity and refill rate (for Token Bucket)
+
+        // Only set requests/window if explicitly provided (not default -1)
+        if (rateLimit.requests() > 0) {
+            builder.requests(rateLimit.requests());
+        }
+        if (rateLimit.window() > 0) {
+            builder.window(rateLimit.window());
+        }
+
+        // Set capacity and refill rate for Token Bucket
         if (rateLimit.capacity() > 0) {
             builder.capacity(rateLimit.capacity());
         }
         if (rateLimit.refillRate() > 0) {
             builder.refillRate(rateLimit.refillRate());
         }
-        
+
         return builder.build();
     }
     

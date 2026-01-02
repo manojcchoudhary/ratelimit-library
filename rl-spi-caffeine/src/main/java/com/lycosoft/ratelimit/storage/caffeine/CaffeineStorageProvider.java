@@ -2,6 +2,7 @@ package com.lycosoft.ratelimit.storage.caffeine;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.lycosoft.ratelimit.algorithm.FixedWindowAlgorithm;
 import com.lycosoft.ratelimit.algorithm.SlidingWindowAlgorithm;
 import com.lycosoft.ratelimit.algorithm.TokenBucketAlgorithm;
 import com.lycosoft.ratelimit.config.RateLimitConfig;
@@ -46,12 +47,17 @@ public class CaffeineStorageProvider implements StorageProvider {
      * Cache for Token Bucket states.
      */
     private final Cache<String, TokenBucketAlgorithm.BucketState> tokenBucketCache;
-    
+
     /**
      * Cache for Sliding Window states.
      */
     private final Cache<String, SlidingWindowAlgorithm.WindowState> slidingWindowCache;
-    
+
+    /**
+     * Cache for Fixed Window states.
+     */
+    private final Cache<String, FixedWindowAlgorithm.WindowState> fixedWindowCache;
+
     /**
      * Cache for algorithm configurations (to know which cache to use).
      */
@@ -79,19 +85,25 @@ public class CaffeineStorageProvider implements StorageProvider {
                 .expireAfterWrite(ttlDuration, ttlUnit)
                 .recordStats()
                 .build();
-        
+
         this.slidingWindowCache = Caffeine.newBuilder()
                 .maximumSize(maxEntries)
                 .expireAfterWrite(ttlDuration, ttlUnit)
                 .recordStats()
                 .build();
-        
+
+        this.fixedWindowCache = Caffeine.newBuilder()
+                .maximumSize(maxEntries)
+                .expireAfterWrite(ttlDuration, ttlUnit)
+                .recordStats()
+                .build();
+
         this.algorithmCache = Caffeine.newBuilder()
                 .maximumSize(maxEntries)
                 .expireAfterWrite(ttlDuration, ttlUnit)
                 .build();
-        
-        logger.info("CaffeineStorageProvider initialized (maxEntries={}, TTL={}{})", 
+
+        logger.info("CaffeineStorageProvider initialized (maxEntries={}, TTL={}{})",
                    maxEntries, ttlDuration, ttlUnit);
     }
     
@@ -109,7 +121,7 @@ public class CaffeineStorageProvider implements StorageProvider {
         return switch (config.getAlgorithm()) {
             case TOKEN_BUCKET -> tryAcquireTokenBucket(key, config, currentTime);
             case SLIDING_WINDOW -> tryAcquireSlidingWindow(key, config, currentTime);
-            default -> throw new IllegalArgumentException("Unsupported algorithm: " + config.getAlgorithm());
+            case FIXED_WINDOW -> tryAcquireFixedWindow(key, config, currentTime);
         };
     }
     
@@ -174,11 +186,45 @@ public class CaffeineStorageProvider implements StorageProvider {
 
         return allowed.get();
     }
-    
+
+    /**
+     * Tries to acquire using Fixed Window algorithm.
+     *
+     * <p><b>Thread Safety:</b> Uses atomic compute() operation to prevent
+     * race conditions (TOCTOU - Time-of-Check to Time-of-Use).
+     *
+     * @param key the rate limit key
+     * @param config the configuration
+     * @param currentTime the current time
+     * @return true if allowed, false otherwise
+     */
+    private boolean tryAcquireFixedWindow(String key, RateLimitConfig config, long currentTime) {
+        // Convert window to seconds for FixedWindowAlgorithm
+        int windowSeconds = (int) (config.getWindowMillis() / 1000);
+        if (windowSeconds < 1) {
+            windowSeconds = 1;  // Minimum 1 second
+        }
+        FixedWindowAlgorithm algorithm = new FixedWindowAlgorithm(windowSeconds);
+
+        // Use atomic compute() to prevent race conditions (TOCTOU)
+        AtomicBoolean allowed = new AtomicBoolean(false);
+        fixedWindowCache.asMap().compute(key, (k, oldState) -> {
+            FixedWindowAlgorithm.WindowState newState = algorithm.tryAcquire(
+                    oldState, config.getRequests(), currentTime);
+            allowed.set(newState.isAllowed());
+            return newState;
+        });
+
+        logger.trace("Fixed Window check for key={}, allowed={}", key, allowed.get());
+
+        return allowed.get();
+    }
+
     @Override
     public void reset(String key) {
         tokenBucketCache.invalidate(key);
         slidingWindowCache.invalidate(key);
+        fixedWindowCache.invalidate(key);
         algorithmCache.invalidate(key);
         logger.debug("Reset rate limiter for key: {}", key);
     }
@@ -207,8 +253,8 @@ public class CaffeineStorageProvider implements StorageProvider {
             case SLIDING_WINDOW:
                 SlidingWindowAlgorithm.WindowState windowState = slidingWindowCache.getIfPresent(key);
                 if (windowState != null) {
-                    int currentCount = windowState.getCurrentWindow() != null 
-                        ? windowState.getCurrentWindow().getCount() 
+                    int currentCount = windowState.getCurrentWindow() != null
+                        ? windowState.getCurrentWindow().getCount()
                         : 0;
                     return Optional.of(new CaffeineRateLimitState(
                         0,  // limit unknown
@@ -218,8 +264,20 @@ public class CaffeineStorageProvider implements StorageProvider {
                     ));
                 }
                 break;
+
+            case FIXED_WINDOW:
+                FixedWindowAlgorithm.WindowState fixedState = fixedWindowCache.getIfPresent(key);
+                if (fixedState != null) {
+                    return Optional.of(new CaffeineRateLimitState(
+                        0,  // limit unknown
+                        0,  // remaining unknown
+                        fixedState.getWindowNumber() * 1000,  // approximate reset time
+                        fixedState.getRequestCount()
+                    ));
+                }
+                break;
         }
-        
+
         return Optional.empty();
     }
 
@@ -233,6 +291,8 @@ public class CaffeineStorageProvider implements StorageProvider {
         diagnostics.put("tokenBucket.hitRate", getTokenBucketStats().hitRate());
         diagnostics.put("slidingWindow.size", slidingWindowCache.estimatedSize());
         diagnostics.put("slidingWindow.hitRate", getSlidingWindowStats().hitRate());
+        diagnostics.put("fixedWindow.size", fixedWindowCache.estimatedSize());
+        diagnostics.put("fixedWindow.hitRate", getFixedWindowStats().hitRate());
 
         return diagnostics;
     }
@@ -248,19 +308,29 @@ public class CaffeineStorageProvider implements StorageProvider {
     
     /**
      * Gets cache statistics for Sliding Window.
-     * 
+     *
      * @return cache stats
      */
     public com.github.benmanes.caffeine.cache.stats.CacheStats getSlidingWindowStats() {
         return slidingWindowCache.stats();
     }
-    
+
+    /**
+     * Gets cache statistics for Fixed Window.
+     *
+     * @return cache stats
+     */
+    public com.github.benmanes.caffeine.cache.stats.CacheStats getFixedWindowStats() {
+        return fixedWindowCache.stats();
+    }
+
     /**
      * Clears all caches.
      */
     public void clearAll() {
         tokenBucketCache.invalidateAll();
         slidingWindowCache.invalidateAll();
+        fixedWindowCache.invalidateAll();
         algorithmCache.invalidateAll();
         logger.info("Cleared all Caffeine caches");
     }

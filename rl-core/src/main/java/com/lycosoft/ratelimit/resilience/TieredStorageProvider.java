@@ -128,14 +128,21 @@ public class TieredStorageProvider implements StorageProvider {
         switch (strategy) {
             case FAIL_OPEN:
                 // AP mode: Prioritize availability
-                // Use L2 for per-node rate limiting
-                boolean allowed = l2Provider.tryAcquire(key, config, currentTime);
+                // Use L2 for per-node rate limiting, but if L2 also fails, allow the request
+                try {
+                    boolean allowed = l2Provider.tryAcquire(key, config, currentTime);
 
-                if (!allowed) {
-                    logger.trace("L2 denied request for key={} (AP mode)", key);
+                    if (!allowed) {
+                        logger.trace("L2 denied request for key={} (AP mode)", key);
+                    }
+
+                    return allowed;
+                } catch (Exception l2Exception) {
+                    // Both L1 and L2 failed - FAIL_OPEN means allow the request
+                    logger.warn("Both L1 and L2 failed for key={}, allowing request (FAIL_OPEN): {}",
+                            key, l2Exception.getMessage());
+                    return true;
                 }
-
-                return allowed;
 
             case FAIL_CLOSED:
                 // CP mode: Prioritize consistency
@@ -192,6 +199,7 @@ public class TieredStorageProvider implements StorageProvider {
         diagnostics.put("l2Healthy", l2Provider.isHealthy());
         diagnostics.put("circuitState", circuitBreaker.getState().name());
         diagnostics.put("circuitFailureRate", circuitBreaker.getFailureRate());
+        diagnostics.put("failStrategy", failStrategy.name());
 
         // Null-safe handling of provider diagnostics
         Map<String, Object> l1Diag = l1Provider.getDiagnostics();

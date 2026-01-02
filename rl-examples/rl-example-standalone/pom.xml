@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.lycosoft.ratelimit</groupId>
         <artifactId>rl-examples</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>rl-example-standalone</artifactId>
@@ -20,8 +20,9 @@
     <dependencies>
         <!-- Rate Limit Core (only) -->
         <dependency>
-            <groupId>com.lycosoft.ratelimit</groupId>
+            <groupId>com.lycosoft</groupId>
             <artifactId>rl-core</artifactId>
+            <version>${ratelimit.version}</version>
         </dependency>
         
         <!-- SLF4J Implementation -->

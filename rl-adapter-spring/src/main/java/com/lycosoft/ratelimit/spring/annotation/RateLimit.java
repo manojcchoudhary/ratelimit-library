@@ -86,17 +86,23 @@ public @interface RateLimit {
     
     /**
      * The maximum number of requests allowed.
-     * 
+     *
+     * <p>Required for SLIDING_WINDOW algorithm. Optional for TOKEN_BUCKET
+     * when capacity and refillRate are specified.
+     *
      * @return the request limit
      */
-    int requests();
-    
+    int requests() default -1;
+
     /**
      * The time window duration.
-     * 
+     *
+     * <p>Required for SLIDING_WINDOW algorithm. Optional for TOKEN_BUCKET
+     * when capacity and refillRate are specified.
+     *
      * @return the window duration
      */
-    long window();
+    long window() default -1;
     
     /**
      * The time unit for the window.
