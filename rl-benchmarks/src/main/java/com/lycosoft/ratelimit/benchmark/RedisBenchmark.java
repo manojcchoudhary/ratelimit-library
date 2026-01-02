@@ -106,11 +106,12 @@ public class RedisBenchmark {
         caffeineBaseline = new CaffeineStorageProvider();
 
         // Configs
+        // refillRate is tokens per millisecond: 0.01 = 10 tokens/second
         tokenBucketConfig = RateLimitConfig.builder()
                 .name("redis-benchmark-tb")
                 .algorithm(RateLimitConfig.Algorithm.TOKEN_BUCKET)
                 .capacity(100)
-                .refillRate(10.0)
+                .refillRate(0.01)  // 10 tokens per second
                 .requests(100)
                 .window(1)
                 .build();

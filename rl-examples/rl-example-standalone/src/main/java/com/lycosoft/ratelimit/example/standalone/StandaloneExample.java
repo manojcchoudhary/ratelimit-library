@@ -56,13 +56,14 @@ public class StandaloneExample {
         LimiterEngine engine = new LimiterEngine(storage, keyResolver, metrics, auditLogger);
         
         // 3. Define rate limit (Token Bucket)
+        // refillRate is tokens per millisecond: 0.01 = 10 tokens/second
         RateLimitConfig config = RateLimitConfig.builder()
             .name("processing-loop")
-            .algorithm("TOKEN_BUCKET")
+            .algorithm(RateLimitConfig.Algorithm.TOKEN_BUCKET)
             .requests(10)            // Base limit
             .window(1)               // Per second
             .capacity(50)            // Burst capacity
-            .refillRate(10)          // 10 tokens/second
+            .refillRate(0.01)        // 10 tokens/second (tokens per ms)
             .build();
         
         // 4. Simulate processing loop

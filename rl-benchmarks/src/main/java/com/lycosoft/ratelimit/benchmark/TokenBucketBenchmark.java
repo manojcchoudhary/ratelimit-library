@@ -4,7 +4,9 @@ import com.lycosoft.ratelimit.algorithm.TokenBucketAlgorithm;
 import com.lycosoft.ratelimit.config.RateLimitConfig;
 import com.lycosoft.ratelimit.engine.LimiterEngine;
 import com.lycosoft.ratelimit.engine.RateLimitContext;
+import com.lycosoft.ratelimit.spi.NoOpMetricsExporter;
 import com.lycosoft.ratelimit.storage.InMemoryStorageProvider;
+import com.lycosoft.ratelimit.storage.StaticKeyResolver;
 import com.lycosoft.ratelimit.storage.caffeine.CaffeineStorageProvider;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
@@ -57,13 +59,19 @@ public class TokenBucketBenchmark {
 
         // Setup LimiterEngine with Caffeine storage
         CaffeineStorageProvider storageProvider = new CaffeineStorageProvider();
-        limiterEngine = new LimiterEngine(storageProvider);
+        limiterEngine = new LimiterEngine(
+                storageProvider,
+                new StaticKeyResolver("benchmark"),
+                new NoOpMetricsExporter(),
+                null
+        );
 
+        // refillRate is tokens per millisecond: 0.01 = 10 tokens/second
         config = RateLimitConfig.builder()
                 .name("benchmark-limiter")
                 .algorithm(RateLimitConfig.Algorithm.TOKEN_BUCKET)
                 .capacity(100)
-                .refillRate(10.0)
+                .refillRate(0.01)  // 10 tokens per second
                 .requests(100)
                 .window(1)
                 .build();

@@ -77,11 +77,12 @@ public class TieredStorageBenchmark {
                 RateLimitConfig.FailStrategy.FAIL_OPEN
         );
 
+        // refillRate is tokens per millisecond: 0.01 = 10 tokens/second
         config = RateLimitConfig.builder()
                 .name("tiered-benchmark")
                 .algorithm(RateLimitConfig.Algorithm.TOKEN_BUCKET)
                 .capacity(100)
-                .refillRate(10.0)
+                .refillRate(0.01)  // 10 tokens per second
                 .requests(100)
                 .window(1)
                 .build();
