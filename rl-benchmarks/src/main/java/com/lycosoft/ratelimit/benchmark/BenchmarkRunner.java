@@ -8,6 +8,7 @@ import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -30,6 +31,10 @@ import java.util.stream.Collectors;
  * java -Dredis.host=localhost -Dredis.port=6379 \
  *      -cp benchmarks.jar com.lycosoft.ratelimit.benchmark.BenchmarkRunner
  *
+ * # Specify output directory for benchmark results
+ * java -Dbenchmark.output.dir=/path/to/output \
+ *      -cp benchmarks.jar com.lycosoft.ratelimit.benchmark.BenchmarkRunner
+ *
  * # Run specific benchmark suite
  * java -jar benchmarks.jar TokenBucketBenchmark
  * java -jar benchmarks.jar SpELBenchmark
@@ -37,6 +42,13 @@ import java.util.stream.Collectors;
  * java -jar benchmarks.jar TieredStorageBenchmark
  * java -jar benchmarks.jar RedisBenchmark
  * </pre>
+ *
+ * <p><b>System Properties:</b>
+ * <ul>
+ *   <li>{@code redis.host} - Redis host (default: localhost)</li>
+ *   <li>{@code redis.port} - Redis port (default: 6379)</li>
+ *   <li>{@code benchmark.output.dir} - Output directory for results (default: current directory)</li>
+ * </ul>
  *
  * <p><b>Expected Results:</b>
  * <pre>
@@ -65,7 +77,8 @@ public class BenchmarkRunner {
     private static final DecimalFormat LATENCY_FORMAT = new DecimalFormat("#,##0.000");
     private static final DecimalFormat THROUGHPUT_FORMAT = new DecimalFormat("#,##0.000");
     private static final DecimalFormat LARGE_THROUGHPUT_FORMAT = new DecimalFormat("#,###,###");
-    private static final String BENCHMARK_MD_PATH = "BENCHMARK.md";
+    private static final String BENCHMARK_MD_FILENAME = "BENCHMARK.md";
+    private static final String BENCHMARK_JSON_FILENAME = "benchmark-results.json";
 
     public static void main(String[] args) throws RunnerException {
         System.out.println();
@@ -74,6 +87,18 @@ public class BenchmarkRunner {
         System.out.println("╠══════════════════════════════════════════════════════════════════════════════╣");
         System.out.println("║ Running comprehensive benchmarks... This may take 10-15 minutes.             ║");
         System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
+        System.out.println();
+
+        // Determine output directory (configurable via system property)
+        String outputDir = System.getProperty("benchmark.output.dir", ".");
+        File outputDirectory = new File(outputDir).getAbsoluteFile();
+        if (!outputDirectory.exists()) {
+            outputDirectory.mkdirs();
+        }
+        File benchmarkMdFile = new File(outputDirectory, BENCHMARK_MD_FILENAME);
+        File benchmarkJsonFile = new File(outputDirectory, BENCHMARK_JSON_FILENAME);
+
+        System.out.println("Output directory: " + outputDirectory.getAbsolutePath());
         System.out.println();
 
         // Check Redis availability
@@ -92,7 +117,7 @@ public class BenchmarkRunner {
                 .measurementIterations(5)
                 .forks(1)
                 .resultFormat(ResultFormatType.JSON)
-                .result("benchmark-results.json");
+                .result(benchmarkJsonFile.getAbsolutePath());
 
         // Include all benchmarks
         optionsBuilder.include(TokenBucketBenchmark.class.getSimpleName());
@@ -113,11 +138,22 @@ public class BenchmarkRunner {
         printFormattedResults(results);
 
         // Generate BENCHMARK.md file
-        generateBenchmarkMarkdown(results, redisAvailable);
+        generateBenchmarkMarkdown(results, redisAvailable, benchmarkMdFile);
 
         System.out.println();
-        System.out.println("Results saved to: benchmark-results.json");
-        System.out.println("Markdown report saved to: " + BENCHMARK_MD_PATH);
+        System.out.println("╔══════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                           OUTPUT FILES GENERATED                             ║");
+        System.out.println("╠══════════════════════════════════════════════════════════════════════════════╣");
+        System.out.println("║ JSON results: " + padRight(benchmarkJsonFile.getAbsolutePath(), 62) + "║");
+        System.out.println("║ Markdown report: " + padRight(benchmarkMdFile.getAbsolutePath(), 59) + "║");
+        System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
+    }
+
+    private static String padRight(String s, int n) {
+        if (s.length() > n) {
+            return s.substring(0, n - 3) + "...";
+        }
+        return String.format("%-" + n + "s", s);
     }
 
     private static boolean checkRedisAvailable() {
@@ -155,8 +191,8 @@ public class BenchmarkRunner {
         System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
     }
 
-    private static void generateBenchmarkMarkdown(Collection<RunResult> results, boolean redisAvailable) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(BENCHMARK_MD_PATH))) {
+    private static void generateBenchmarkMarkdown(Collection<RunResult> results, boolean redisAvailable, File outputFile) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(outputFile))) {
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
             writer.println("# Performance Benchmarks");
@@ -352,10 +388,10 @@ public class BenchmarkRunner {
             writer.println("- Concurrent benchmarks use 8 threads to simulate real-world contention");
             writer.println("- Health check and diagnostics for tiered Redis+Caffeine query both layers");
 
-            System.out.println("Generated " + BENCHMARK_MD_PATH);
+            System.out.println("Generated " + outputFile.getAbsolutePath());
 
         } catch (IOException e) {
-            System.err.println("Failed to write " + BENCHMARK_MD_PATH + ": " + e.getMessage());
+            System.err.println("Failed to write " + outputFile.getAbsolutePath() + ": " + e.getMessage());
         }
     }
 
