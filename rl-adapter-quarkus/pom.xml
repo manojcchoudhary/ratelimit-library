@@ -19,19 +19,10 @@
 
     <properties>
         <quarkus.version>3.6.0</quarkus.version>
+        <jakarta.cdi.version>4.0.1</jakarta.cdi.version>
+        <jakarta.interceptor.version>2.1.0</jakarta.interceptor.version>
+        <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.quarkus.platform</groupId>
-                <artifactId>quarkus-bom</artifactId>
-                <version>${quarkus.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <!-- Core module -->
@@ -51,18 +42,21 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
+            <version>${quarkus.version}</version>
         </dependency>
 
         <!-- SmallRye Config -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-config-yaml</artifactId>
+            <version>${quarkus.version}</version>
         </dependency>
 
         <!-- SmallRye Metrics -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
+            <version>${quarkus.version}</version>
             <optional>true</optional>
         </dependency>
 
@@ -70,24 +64,28 @@
         <dependency>
             <groupId>jakarta.enterprise</groupId>
             <artifactId>jakarta.enterprise.cdi-api</artifactId>
+            <version>${jakarta.cdi.version}</version>
         </dependency>
 
         <!-- Jakarta Interceptor API -->
         <dependency>
             <groupId>jakarta.interceptor</groupId>
             <artifactId>jakarta.interceptor-api</artifactId>
+            <version>${jakarta.interceptor.version}</version>
         </dependency>
-        
+
         <!-- Jakarta JAX-RS API (for exception mapper) -->
         <dependency>
             <groupId>jakarta.ws.rs</groupId>
             <artifactId>jakarta.ws.rs-api</artifactId>
+            <version>${jakarta.ws.rs.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5</artifactId>
+            <version>${quarkus.version}</version>
             <scope>test</scope>
         </dependency>
 
