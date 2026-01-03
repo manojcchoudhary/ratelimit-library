@@ -3,7 +3,171 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rate Limiting Library | Production-Grade Java Rate Limiter</title>
+    <title>Rate Limiting Library | Production-Grade Java Rate Limiter for Spring Boot & Quarkus</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Open-source, high-performance rate limiting library for Java. Protect your APIs with one annotation. Sub-millisecond overhead, Redis support, Spring Boot and Quarkus integration. Token Bucket & Sliding Window algorithms." />
+    <meta name="keywords" content="rate limiting, rate limiter, Java, Spring Boot, Quarkus, API protection, token bucket, sliding window, Redis, distributed rate limiting, API security, throttling, request limiting, Java library, open source" />
+    <meta name="author" content="Lycosoft" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="theme-color" content="#0a0f1a" />
+    <meta name="color-scheme" content="dark" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://github.com/manojcchoudhary/ratelimit-library" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Rate Limiting Library" />
+    <meta property="og:title" content="Rate Limiting Library - Production-Grade Java Rate Limiter" />
+    <meta property="og:description" content="Open-source rate limiting for Java. One annotation to protect your APIs. Sub-millisecond overhead with Spring Boot and Quarkus support." />
+    <meta property="og:url" content="https://github.com/manojcchoudhary/ratelimit-library" />
+    <meta property="og:image" content="https://opengraph.githubassets.com/1/manojcchoudhary/ratelimit-library" />
+    <meta property="og:image:alt" content="Rate Limiting Library - Java API Protection" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Rate Limiting Library - Production-Grade Java Rate Limiter" />
+    <meta name="twitter:description" content="Open-source rate limiting for Java. One annotation to protect your APIs. Sub-millisecond overhead with Spring Boot and Quarkus support." />
+    <meta name="twitter:image" content="https://opengraph.githubassets.com/1/manojcchoudhary/ratelimit-library" />
+    <meta name="twitter:image:alt" content="Rate Limiting Library - Java API Protection" />
+
+    <!-- Additional SEO -->
+    <meta name="application-name" content="Rate Limiting Library" />
+    <meta name="apple-mobile-web-app-title" content="Rate Limiter" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Structured Data - Software Application -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "Rate Limiting Library",
+        "description": "A production-grade, high-performance rate limiting library for Java applications with support for Spring Boot and Quarkus. Features Token Bucket and Sliding Window algorithms, Redis distributed storage, and sub-millisecond overhead.",
+        "url": "https://github.com/manojcchoudhary/ratelimit-library",
+        "codeRepository": "https://github.com/manojcchoudhary/ratelimit-library",
+        "programmingLanguage": {
+            "@type": "ComputerLanguage",
+            "name": "Java"
+        },
+        "runtimePlatform": ["Java 17+", "Spring Boot 3.x", "Quarkus 3.x"],
+        "license": "https://opensource.org/licenses/Apache-2.0",
+        "author": {
+            "@type": "Organization",
+            "name": "Lycosoft"
+        },
+        "datePublished": "2024-01-01",
+        "operatingSystem": "Cross-platform",
+        "applicationCategory": "DeveloperApplication",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "keywords": ["rate limiting", "API protection", "Java", "Spring Boot", "Quarkus", "Redis", "token bucket", "sliding window"],
+        "featureList": [
+            "Token Bucket Algorithm",
+            "Sliding Window Algorithm",
+            "Spring Boot Integration",
+            "Quarkus Integration",
+            "Redis Distributed Storage",
+            "Sub-millisecond Overhead",
+            "Prometheus Metrics",
+            "Circuit Breaker Pattern",
+            "SpEL Expression Support",
+            "Zero Configuration Required"
+        ]
+    }
+    </script>
+
+    <!-- Structured Data - FAQ -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is the Rate Limiting Library?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The Rate Limiting Library is an open-source, production-grade rate limiting solution for Java applications. It provides annotation-based API protection with sub-millisecond overhead, supporting Spring Boot and Quarkus frameworks."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I add rate limiting to my Spring Boot application?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Simply add the rl-adapter-spring dependency to your pom.xml and use the @RateLimit annotation on your controller methods. For example: @RateLimit(requests = 100, window = 60) limits to 100 requests per 60 seconds."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What rate limiting algorithms are supported?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The library supports Token Bucket (for burst handling) and Sliding Window (for accuracy) algorithms. Token Bucket allows controlled bursts while maintaining average rates, while Sliding Window provides smooth, accurate rate limiting without boundary issues."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Does it support distributed rate limiting with Redis?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, the library includes Redis support with atomic Lua scripts for consistent rate limiting across multiple application instances. It also features L1/L2 tiered storage with automatic failover for high availability."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the performance overhead?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Local storage (Caffeine) has P99 latency under 100 microseconds with over 8 million operations per second. Distributed storage (Redis) has P99 latency under 2 milliseconds with approximately 45,000 operations per second."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- Structured Data - BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://github.com/manojcchoudhary/ratelimit-library"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Features",
+                "item": "https://github.com/manojcchoudhary/ratelimit-library#features"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Quick Start",
+                "item": "https://github.com/manojcchoudhary/ratelimit-library#quick-start"
+            },
+            {
+                "@type": "ListItem",
+                "position": 4,
+                "name": "Documentation",
+                "item": "https://github.com/manojcchoudhary/ratelimit-library/tree/main/docs"
+            }
+        ]
+    }
+    </script>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -83,6 +247,36 @@
         /* Typography */
         .font-mono {
             font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Accessibility - Screen reader only content */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Skip to main content link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--accent);
+            color: white;
+            padding: 8px 16px;
+            z-index: 1000;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .skip-link:focus {
+            top: 0;
         }
 
         /* Container */
@@ -704,12 +898,6 @@
             gap: 40px;
         }
 
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
         .stat-card {
             text-align: center;
         }
@@ -898,17 +1086,13 @@
             gap: 24px;
         }
 
-        @media (max-width: 1024px) {
-            .usage-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
         .usage-card {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 32px;
+            overflow: hidden;
+            min-width: 0;
         }
 
         .usage-card.full-width {
@@ -937,6 +1121,22 @@
             margin-bottom: 20px;
         }
 
+        .usage-card .code-block {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .usage-card .code-block pre {
+            margin: 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .usage-card .code-block code {
+            white-space: pre;
+            display: block;
+        }
+
         /* Config Section */
         .config {
             padding: 100px 0;
@@ -947,12 +1147,6 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 40px;
-        }
-
-        @media (max-width: 768px) {
-            .config-grid {
-                grid-template-columns: 1fr;
-            }
         }
 
         .config-card h3 {
@@ -1052,10 +1246,106 @@
             color: var(--text-primary);
             font-size: 24px;
             cursor: pointer;
+            padding: 8px;
+            z-index: 101;
         }
 
-        @media (max-width: 768px) {
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            z-index: 99;
+            padding: 100px 24px 40px;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        .mobile-menu a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: 500;
+            padding: 12px 24px;
+            transition: color 0.3s ease;
+        }
+
+        .mobile-menu a:hover {
+            color: var(--accent);
+        }
+
+        /* ========================================================
+           RESPONSIVE BREAKPOINTS
+           ======================================================== */
+
+        /* Large screens (< 1280px) */
+        @media (max-width: 1280px) {
+            .container {
+                padding: 0 32px;
+            }
+
+            .stat-number {
+                font-size: 40px;
+            }
+        }
+
+        /* Medium screens (< 1024px) */
+        @media (max-width: 1024px) {
             .nav-links {
+                gap: 24px;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 32px;
+            }
+
+            .stat-value {
+                font-size: 44px;
+            }
+
+            .usage-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .config-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .traffic-flow {
+                max-width: 100%;
+            }
+
+            .hero-visualization {
+                margin-top: 40px;
+            }
+        }
+
+        /* Tablet screens (< 768px) */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .nav-cta .btn {
                 display: none;
             }
 
@@ -1063,16 +1353,593 @@
                 display: block;
             }
 
-            .features-grid {
-                grid-template-columns: 1fr;
+            .hero {
+                padding: 100px 0 60px;
+                min-height: auto;
             }
 
             .hero-title {
-                font-size: 36px;
+                font-size: 32px;
+                margin-bottom: 20px;
             }
 
             .hero-subtitle {
                 font-size: 16px;
+                margin-bottom: 32px;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .hero-actions .btn {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+
+            .hero-badges {
+                gap: 8px;
+            }
+
+            .hero-badges img {
+                height: 20px;
+            }
+
+            .hero-visualization {
+                margin-top: 32px;
+                height: 160px;
+            }
+
+            .traffic-flow {
+                height: 140px;
+            }
+
+            .gatekeeper {
+                width: 60px;
+                height: 80px;
+            }
+
+            .gate-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+
+            .gate-label {
+                font-size: 9px;
+            }
+
+            .flow-label {
+                font-size: 9px;
+            }
+
+            .traffic-dot {
+                width: 8px;
+                height: 8px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .features {
+                padding: 80px 0;
+            }
+
+            .section-header {
+                margin-bottom: 48px;
+            }
+
+            .section-title {
+                font-size: 28px;
+            }
+
+            .section-subtitle {
+                font-size: 16px;
+            }
+
+            .feature-card {
+                padding: 24px;
+            }
+
+            .feature-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+
+            .feature-title {
+                font-size: 18px;
+            }
+
+            .feature-desc {
+                font-size: 14px;
+            }
+
+            .stats-section {
+                padding: 60px 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+            }
+
+            .stat-value {
+                font-size: 36px;
+            }
+
+            .stat-value .unit {
+                font-size: 20px;
+            }
+
+            .stat-description {
+                font-size: 11px;
+            }
+
+            .stats-marquee {
+                padding: 40px 0;
+            }
+
+            .marquee-track {
+                gap: 40px;
+            }
+
+            .stat-item .stat-number {
+                font-size: 32px;
+            }
+
+            .stat-item .stat-label {
+                font-size: 11px;
+            }
+
+            .architecture {
+                padding: 80px 0;
+            }
+
+            .architecture-table {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .architecture-table table {
+                min-width: 600px;
+            }
+
+            .architecture-table th,
+            .architecture-table td {
+                padding: 14px 16px;
+                font-size: 13px;
+            }
+
+            .quickstart {
+                padding: 80px 0;
+            }
+
+            .tabs {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .tab-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .code-block pre {
+                padding: 16px;
+            }
+
+            .code-block code {
+                font-size: 12px;
+            }
+
+            .usage {
+                padding: 80px 0;
+            }
+
+            .usage-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .usage-card {
+                padding: 24px;
+            }
+
+            .usage-card.full-width {
+                grid-column: auto;
+            }
+
+            .usage-card-header {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .usage-card-title {
+                font-size: 16px;
+            }
+
+            .usage-card-desc {
+                font-size: 13px;
+                margin-bottom: 16px;
+            }
+
+            .usage-card .code-block {
+                margin: 0 -24px -24px -24px;
+                border-radius: 0 0 16px 16px;
+            }
+
+            .usage-card .code-block pre {
+                padding: 16px;
+                font-size: 11px;
+            }
+
+            .usage-card .code-block code {
+                font-size: 11px;
+                line-height: 1.5;
+            }
+
+            .config {
+                padding: 60px 0;
+            }
+
+            .config-card h3 {
+                font-size: 18px;
+            }
+
+            .cta-section {
+                padding: 60px 0 !important;
+            }
+
+            .footer {
+                padding: 60px 0 32px;
+            }
+
+            .footer-logo {
+                font-size: 20px;
+            }
+
+            .footer-links {
+                gap: 20px;
+            }
+
+            .footer-links a {
+                font-size: 20px;
+            }
+        }
+
+        /* Small screens (< 480px) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .nav {
+                padding: 16px 0;
+            }
+
+            .nav-logo-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .nav-logo-text {
+                font-size: 16px;
+            }
+
+            .nav-github {
+                font-size: 20px;
+            }
+
+            .hero {
+                padding: 90px 0 48px;
+            }
+
+            .hero-badge {
+                padding: 6px 12px;
+                font-size: 11px;
+                margin-bottom: 24px;
+            }
+
+            .hero-title {
+                font-size: 26px;
+                line-height: 1.2;
+            }
+
+            .hero-subtitle {
+                font-size: 14px;
+                line-height: 1.6;
+            }
+
+            .hero-badges img {
+                height: 18px;
+            }
+
+            .hero-visualization {
+                height: 140px;
+                margin-top: 24px;
+            }
+
+            .traffic-flow {
+                height: 120px;
+            }
+
+            .gatekeeper {
+                width: 50px;
+                height: 70px;
+            }
+
+            .gate-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+                border-radius: 8px;
+            }
+
+            .gate-label {
+                font-size: 8px;
+                margin-top: 6px;
+            }
+
+            .flow-label {
+                font-size: 8px;
+            }
+
+            .flow-label.denied-label {
+                right: 25%;
+            }
+
+            .traffic-dot {
+                width: 6px;
+                height: 6px;
+            }
+
+            .section-label {
+                font-size: 11px;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+
+            .section-subtitle {
+                font-size: 14px;
+            }
+
+            .features {
+                padding: 60px 0;
+            }
+
+            .section-header {
+                margin-bottom: 40px;
+            }
+
+            .feature-card {
+                padding: 20px;
+            }
+
+            .feature-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+                margin-bottom: 16px;
+            }
+
+            .stats-section {
+                padding: 48px 0;
+            }
+
+            .stats-grid {
+                gap: 20px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+            }
+
+            .stat-value .unit {
+                font-size: 16px;
+            }
+
+            .stat-description {
+                font-size: 10px;
+            }
+
+            .stats-marquee {
+                padding: 32px 0;
+            }
+
+            .stat-item .stat-number {
+                font-size: 24px;
+            }
+
+            .stat-item .stat-label {
+                font-size: 10px;
+            }
+
+            .architecture {
+                padding: 60px 0;
+            }
+
+            .quickstart {
+                padding: 60px 0;
+            }
+
+            .tabs {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .tab-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .code-header {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-start;
+            }
+
+            .code-copy {
+                align-self: flex-end;
+            }
+
+            .code-block pre {
+                padding: 14px;
+            }
+
+            .code-block code {
+                font-size: 11px;
+            }
+
+            .usage {
+                padding: 60px 0;
+            }
+
+            .usage-grid {
+                gap: 16px;
+            }
+
+            .usage-card {
+                padding: 16px;
+                border-radius: 12px;
+            }
+
+            .usage-card-header {
+                margin-bottom: 12px;
+            }
+
+            .usage-card-icon {
+                font-size: 18px;
+            }
+
+            .usage-card-title {
+                font-size: 15px;
+            }
+
+            .usage-card-desc {
+                font-size: 12px;
+                margin-bottom: 12px;
+            }
+
+            .usage-card .code-block {
+                margin: 0 -16px -16px -16px;
+                border-radius: 0 0 12px 12px;
+            }
+
+            .usage-card .code-block pre {
+                padding: 12px;
+            }
+
+            .usage-card .code-block code {
+                font-size: 10px;
+                line-height: 1.4;
+            }
+
+            .config {
+                padding: 48px 0;
+            }
+
+            .config-card h3 {
+                font-size: 16px;
+            }
+
+            .config-card p {
+                font-size: 13px;
+            }
+
+            .cta-section {
+                padding: 48px 0 !important;
+            }
+
+            .cta-section .section-title {
+                font-size: 22px;
+            }
+
+            .cta-section .hero-actions {
+                margin-top: 32px;
+            }
+
+            .footer {
+                padding: 48px 0 24px;
+            }
+
+            .footer-tagline {
+                font-size: 14px;
+            }
+
+            .footer-copy {
+                font-size: 11px;
+            }
+        }
+
+        /* Extra small screens (< 360px) */
+        @media (max-width: 360px) {
+            .hero-title {
+                font-size: 22px;
+            }
+
+            .hero-subtitle {
+                font-size: 13px;
+            }
+
+            .btn {
+                padding: 10px 18px;
+                font-size: 13px;
+            }
+
+            .section-title {
+                font-size: 20px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .stat-value .unit {
+                font-size: 14px;
+            }
+        }
+
+        /* Landscape mode adjustments for phones */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .hero {
+                min-height: auto;
+                padding: 80px 0 40px;
+            }
+
+            .hero-visualization {
+                display: none;
+            }
+        }
+
+        /* High DPI / Retina displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .hero-grid {
+                background-size: 40px 40px;
+            }
+        }
+
+        /* Reduce motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .marquee-track {
+                animation: none;
+            }
+
+            .lenis.lenis-smooth {
+                scroll-behavior: smooth !important;
             }
         }
 
@@ -1112,53 +1979,68 @@
 </head>
 <body>
 
+<!-- Skip Link for Accessibility -->
+<a href="#features" class="skip-link">Skip to main content</a>
+
 <!-- Navigation -->
-<nav class="nav" id="nav">
+<nav class="nav" id="nav" role="navigation" aria-label="Main navigation">
     <div class="container">
         <div class="nav-inner">
-            <a href="#" class="nav-logo">
-                <div class="nav-logo-icon">
+            <a href="#" class="nav-logo" aria-label="Rate Limit Library - Home">
+                <div class="nav-logo-icon" aria-hidden="true">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <div class="nav-logo-text">Rate Limit <span>Library</span></div>
             </a>
 
-            <ul class="nav-links">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#architecture">Architecture</a></li>
-                <li><a href="#quickstart">Quick Start</a></li>
-                <li><a href="#usage">Examples</a></li>
+            <ul class="nav-links" role="menubar">
+                <li role="none"><a href="#features" role="menuitem">Features</a></li>
+                <li role="none"><a href="#architecture" role="menuitem">Architecture</a></li>
+                <li role="none"><a href="#quickstart" role="menuitem">Quick Start</a></li>
+                <li role="none"><a href="#usage" role="menuitem">Examples</a></li>
             </ul>
 
             <div class="nav-cta">
-                <a href="https://github.com/manojcchoudhary/ratelimit-library" target="_blank" class="nav-github">
-                    <i class="fa-brands fa-github"></i>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library" target="_blank" class="nav-github" aria-label="View project on GitHub" rel="noopener noreferrer">
+                    <i class="fa-brands fa-github" aria-hidden="true"></i>
                 </a>
                 <a href="#quickstart" class="btn btn-primary">Get Started</a>
             </div>
 
-            <button class="mobile-menu-btn" id="mobile-menu-btn">
-                <i class="fa-solid fa-bars"></i>
+            <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-menu">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
             </button>
         </div>
     </div>
 </nav>
 
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Mobile navigation menu" aria-modal="true">
+    <a href="#features" class="mobile-menu-link">Features</a>
+    <a href="#architecture" class="mobile-menu-link">Architecture</a>
+    <a href="#quickstart" class="mobile-menu-link">Quick Start</a>
+    <a href="#usage" class="mobile-menu-link">Examples</a>
+    <a href="https://github.com/manojcchoudhary/ratelimit-library" target="_blank" class="mobile-menu-link" rel="noopener noreferrer">
+        <i class="fa-brands fa-github" aria-hidden="true"></i> GitHub
+    </a>
+    <a href="#quickstart" class="btn btn-primary" style="margin-top: 16px;">Get Started</a>
+</div>
+
 <!-- Hero Section -->
-<section class="hero">
-    <div class="hero-bg">
+<section class="hero" role="banner" aria-label="Introduction to Rate Limiting Library">
+    <div class="hero-bg" aria-hidden="true">
         <div class="hero-grid"></div>
         <div class="hero-glow"></div>
     </div>
 
     <div class="container">
         <div class="hero-content">
-            <div class="hero-badge">
-                <span class="hero-badge-dot"></span>
+            <div class="hero-badge" role="status" aria-label="Project status">
+                <span class="hero-badge-dot" aria-hidden="true"></span>
                 Now in Public Alpha
             </div>
 
-            <h1 class="hero-title">
+            <h1 class="hero-title" id="page-title">
                 <span>Stop Bad Traffic.</span><br>
                 <span class="gradient">Ship Faster.</span>
             </h1>
@@ -1177,11 +2059,11 @@
                 </a>
             </div>
 
-            <div class="hero-badges">
-                <img src="https://img.shields.io/badge/Java-17+-blue.svg?style=flat-square&logo=openjdk&logoColor=white" alt="Java 17+" />
-                <img src="https://img.shields.io/badge/Spring_Boot-3.x-6DB33F.svg?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot" />
-                <img src="https://img.shields.io/badge/Quarkus-3.x-4695EB.svg?style=flat-square&logo=quarkus&logoColor=white" alt="Quarkus" />
-                <img src="https://img.shields.io/badge/Apache_2.0-License-blue.svg?style=flat-square" alt="License" />
+            <div class="hero-badges" role="list" aria-label="Technology badges">
+                <img src="https://img.shields.io/badge/Java-17+-blue.svg?style=flat-square&logo=openjdk&logoColor=white" alt="Requires Java 17 or higher" loading="lazy" width="80" height="20" />
+                <img src="https://img.shields.io/badge/Spring_Boot-3.x-6DB33F.svg?style=flat-square&logo=springboot&logoColor=white" alt="Compatible with Spring Boot 3.x" loading="lazy" width="110" height="20" />
+                <img src="https://img.shields.io/badge/Quarkus-3.x-4695EB.svg?style=flat-square&logo=quarkus&logoColor=white" alt="Compatible with Quarkus 3.x" loading="lazy" width="90" height="20" />
+                <img src="https://img.shields.io/badge/Apache_2.0-License-blue.svg?style=flat-square" alt="Licensed under Apache 2.0" loading="lazy" width="100" height="20" />
             </div>
 
             <!-- Traffic Flow Visualization -->
@@ -1272,11 +2154,11 @@
 </section>
 
 <!-- Features Section -->
-<section class="features" id="features">
+<section class="features" id="features" aria-labelledby="features-title">
     <div class="container">
         <div class="section-header">
             <div class="section-label fade-up">Why This Library</div>
-            <h2 class="section-title reveal-text">Built for Real Production</h2>
+            <h2 class="section-title reveal-text" id="features-title">Built for Real Production</h2>
             <p class="section-subtitle fade-up">
                 Designed with production patterns in mind. Clean architecture. Extensible by design.
             </p>
@@ -1377,11 +2259,11 @@
 </section>
 
 <!-- Architecture Section -->
-<section class="architecture" id="architecture">
+<section class="architecture" id="architecture" aria-labelledby="architecture-title">
     <div class="container">
         <div class="section-header">
             <div class="section-label fade-up">Architecture</div>
-            <h2 class="section-title reveal-text">Use Only What You Need</h2>
+            <h2 class="section-title reveal-text" id="architecture-title">Use Only What You Need</h2>
             <p class="section-subtitle fade-up">
                 Modular by design. Small JARs. No bloat. Mix and match for your stack.
             </p>
@@ -1444,11 +2326,11 @@
 </section>
 
 <!-- Quick Start Section -->
-<section class="quickstart" id="quickstart">
+<section class="quickstart" id="quickstart" aria-labelledby="quickstart-title">
     <div class="container">
         <div class="section-header">
             <div class="section-label fade-up">Quick Start</div>
-            <h2 class="section-title reveal-text">Two Steps. That's It.</h2>
+            <h2 class="section-title reveal-text" id="quickstart-title">Two Steps. That's It.</h2>
             <p class="section-subtitle fade-up">
                 Add the dependency. Add the annotation. Your API is protected.
             </p>
@@ -1555,11 +2437,11 @@ public class OrderResource {
 </section>
 
 <!-- Usage Section -->
-<section class="usage" id="usage">
+<section class="usage" id="usage" aria-labelledby="usage-title">
     <div class="container">
         <div class="section-header">
             <div class="section-label fade-up">Real-World Patterns</div>
-            <h2 class="section-title reveal-text">Beyond the Basics</h2>
+            <h2 class="section-title reveal-text" id="usage-title">Beyond the Basics</h2>
             <p class="section-subtitle fade-up">
                 Powerful enough for complex scenarios. Simple enough to understand.
             </p>
@@ -1688,22 +2570,25 @@ sum(rate(ratelimit_allowed_total[5m]))</code></pre>
 </section>
 
 <!-- Footer -->
-<footer class="footer">
+<footer class="footer" role="contentinfo">
     <div class="container">
         <div class="footer-content">
             <div class="footer-logo">Rate Limit <span>Library</span></div>
             <p class="footer-tagline">Open source. Production ready. Community driven.</p>
-            <div class="footer-links">
-                <a href="https://github.com/manojcchoudhary/ratelimit-library" target="_blank" title="GitHub">
-                    <i class="fa-brands fa-github"></i>
+            <nav class="footer-links" aria-label="Social links">
+                <a href="https://github.com/manojcchoudhary/ratelimit-library" target="_blank" title="View source code on GitHub" rel="noopener noreferrer">
+                    <i class="fa-brands fa-github" aria-hidden="true"></i>
+                    <span class="visually-hidden">GitHub</span>
                 </a>
-                <a href="https://github.com/manojcchoudhary/ratelimit-library/issues" target="_blank" title="Report Issues">
-                    <i class="fa-solid fa-bug"></i>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/issues" target="_blank" title="Report bugs and issues" rel="noopener noreferrer">
+                    <i class="fa-solid fa-bug" aria-hidden="true"></i>
+                    <span class="visually-hidden">Report Issues</span>
                 </a>
-                <a href="https://github.com/manojcchoudhary/ratelimit-library/discussions" target="_blank" title="Discussions">
-                    <i class="fa-solid fa-comments"></i>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/discussions" target="_blank" title="Join community discussions" rel="noopener noreferrer">
+                    <i class="fa-solid fa-comments" aria-hidden="true"></i>
+                    <span class="visually-hidden">Discussions</span>
                 </a>
-            </div>
+            </nav>
             <p class="footer-copy">Apache License 2.0 &middot; Made with care for the Java community</p>
         </div>
     </div>
@@ -2046,7 +2931,48 @@ sum(rate(ratelimit_allowed_total[5m]))</code></pre>
     // Mobile Menu Toggle
     // ========================================================
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-    // Add mobile menu functionality here if needed
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileMenuLinks = document.querySelectorAll('.mobile-menu a');
+    let isMenuOpen = false;
+
+    function toggleMobileMenu() {
+        isMenuOpen = !isMenuOpen;
+        mobileMenu.classList.toggle('active', isMenuOpen);
+        mobileMenuBtn.innerHTML = isMenuOpen
+            ? '<i class="fa-solid fa-xmark" aria-hidden="true"></i>'
+            : '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+
+        // Update aria-expanded for accessibility
+        mobileMenuBtn.setAttribute('aria-expanded', isMenuOpen);
+
+        // Prevent body scroll when menu is open
+        document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+    }
+
+    mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+
+    // Close menu when clicking a link
+    mobileMenuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (isMenuOpen) {
+                toggleMobileMenu();
+            }
+        });
+    });
+
+    // Close menu on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isMenuOpen) {
+            toggleMobileMenu();
+        }
+    });
+
+    // Close menu when window is resized above mobile breakpoint
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && isMenuOpen) {
+            toggleMobileMenu();
+        }
+    });
 
 </script>
 </body>
