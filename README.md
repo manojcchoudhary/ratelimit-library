@@ -14,7 +14,7 @@ A production-grade, high-performance rate limiting library for Java applications
 - **Spring Boot Ready**: Zero-configuration annotation-driven integration
 - **Quarkus Ready**: CDI interceptor support with Vert.x integration
 - **Distributed Storage**: Redis support with atomic Lua scripts
-- **High Performance**: O(1) algorithms, <500μs local overhead, <2ms distributed overhead
+- **High Performance**: O(1) algorithms, <1μs local overhead, <100μs distributed overhead
 - **Production Resilient**: Circuit breaker, L1/L2 tiered storage, automatic failover
 
 ### Advanced Features
@@ -214,10 +214,11 @@ public StorageProvider storageProvider(JedisPool jedisPool) {
 For detailed benchmark results, see [BENCHMARK.md](BENCHMARK.md).
 
 **Key Performance Metrics:**
-- Local storage (Caffeine): P99 < 100μs, >8M ops/sec
-- Distributed storage (Redis): P99 < 2ms, ~45K ops/sec
+- In-memory storage: ~30M ops/sec, ~33ns average latency
+- Caffeine storage: ~3.3M ops/sec, ~300ns average latency
+- Redis storage: ~19K ops/sec, ~55μs average latency
 - Tiered storage (Redis + Caffeine): Automatic failover with minimal overhead
-- SpEL compilation: 40× faster than interpreted mode
+- SpEL compilation: 40× faster than interpreted mode (29 ops/μs vs 1.5 ops/μs)
 
 Run benchmarks yourself:
 ```bash

@@ -190,7 +190,7 @@ Comparison of different storage backends:
 Production-recommended configuration with distributed Redis as primary and local Caffeine as fallback:
 
 > **Note**: `tiered_healthCheck` and `tiered_diagnostics` query both Redis (L1) and Caffeine (L2),
-> so their latency includes Redis network round-trip (~500μs each). This is expected behavior.
+> so their latency includes Redis network round-trip (~100μs each). This is expected behavior.
 
 | Benchmark | Avg Latency | Throughput |
 |-----------|-------------|------------|
@@ -313,11 +313,11 @@ java -jar rl-benchmarks/target/benchmarks.jar TokenBucketBenchmark
 
 | Storage Type | Expected Latency | Notes |
 |--------------|------------------|-------|
-| InMemory | < 50 ns | Fastest, no synchronization overhead |
-| Caffeine | < 500 ns | Thread-safe with minimal overhead |
-| Tiered (local) | < 1 μs | Small overhead for L1/L2 abstraction |
-| Redis | ~500 μs | Network round-trip dominates |
-| Tiered (Redis+Caffeine) | ~500 μs | Redis latency + minimal local overhead |
+| InMemory | ~33 ns | Fastest, no synchronization overhead |
+| Caffeine | ~300 ns | Thread-safe with minimal overhead |
+| Tiered (local) | ~350 ns | Small overhead for L1/L2 abstraction |
+| Redis | ~55 μs | Network round-trip dominates |
+| Tiered (Redis+Caffeine) | ~55 μs | Redis latency + minimal local overhead |
 
 ### Important Considerations
 

@@ -30,7 +30,7 @@ The Rate Limiting Library is a production-grade, high-performance rate limiting 
 - **Zero Dependencies Core**: Framework-agnostic core module
 - **Framework Integration**: Spring Boot and Quarkus adapters
 - **Distributed Support**: Redis with atomic Lua scripts
-- **High Performance**: O(1) algorithms, <500μs local overhead
+- **High Performance**: O(1) algorithms, <1μs local overhead
 
 ### Architecture
 
@@ -563,7 +563,7 @@ public StorageProvider storageProvider() {
 **When to Use:**
 - Development and testing
 - Single-node deployments
-- Low-latency requirements (<100μs)
+- Low-latency requirements (<1μs)
 
 ### Redis Storage
 
