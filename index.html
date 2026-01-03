@@ -1067,12 +1067,36 @@
             margin: 0;
             padding: 20px;
             overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #555 #1a1a1d;
+        }
+
+        .code-block pre::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .code-block pre::-webkit-scrollbar-track {
+            background: #1a1a1d;
+            border-radius: 4px;
+        }
+
+        .code-block pre::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        .code-block pre::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
 
         .code-block code {
             font-family: 'JetBrains Mono', monospace;
             font-size: 13px;
             line-height: 1.6;
+            white-space: pre;
+            display: block;
         }
 
         /* Usage Section */
