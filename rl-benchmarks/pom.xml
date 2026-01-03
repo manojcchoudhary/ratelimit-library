@@ -7,7 +7,7 @@
 
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-benchmarks</artifactId>
-    <version>0.1.2-alpha</version>
+    <version>0.1.0-beta.1</version>
     <packaging>jar</packaging>
 
     <name>Rate Limit Benchmarks</name>
@@ -20,7 +20,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <jmh.version>1.37</jmh.version>
-        <ratelimit.version>0.1.2-alpha</ratelimit.version>
+        <ratelimit.version>0.1.0-beta.1</ratelimit.version>
     </properties>
 
     <dependencies>
