@@ -29,13 +29,13 @@ A production-grade, high-performance rate limiting library for Java applications
 
 | Module | Description | Size |
 |--------|-------------|------|
-| `rl-core` | Core algorithms, SPIs, security, resilience | ~2,100 LOC |
-| `rl-spi-redis` | Redis storage with versioned Lua scripts | ~570 LOC |
-| `rl-spi-caffeine` | High-performance in-memory storage | ~280 LOC |
-| `rl-adapter-spring` | Spring Boot integration with AOP | ~1,093 LOC |
-| `rl-adapter-quarkus` | Quarkus CDI integration | ~562 LOC |
+| `rl-core` | Core algorithms, SPIs, security, resilience | ~10,800 LOC |
+| `rl-spi-redis` | Redis storage with versioned Lua scripts | ~770 LOC |
+| `rl-spi-caffeine` | High-performance in-memory storage | ~800 LOC |
+| `rl-adapter-spring` | Spring Boot integration with AOP | ~2,760 LOC |
+| `rl-adapter-quarkus` | Quarkus CDI integration | ~800 LOC |
 
-**Total**: ~7,400 lines of production code
+**Total**: ~15,900 lines of production code
 
 ## 🏃 Quick Start
 
@@ -189,6 +189,22 @@ public StorageProvider storageProvider(JedisPool jedisPool) {
         RateLimitConfig.FailStrategy.FAIL_OPEN  // Prioritize availability
     );
 }
+```
+
+## 📈 Performance
+
+For detailed benchmark results, see [BENCHMARK.md](BENCHMARK.md).
+
+**Key Performance Metrics:**
+- Local storage (Caffeine): P99 < 100μs, >8M ops/sec
+- Distributed storage (Redis): P99 < 2ms, ~45K ops/sec
+- Tiered storage (Redis + Caffeine): Automatic failover with minimal overhead
+- SpEL compilation: 40× faster than interpreted mode
+
+Run benchmarks yourself:
+```bash
+mvn clean package -pl rl-benchmarks -am -DskipTests
+java -jar rl-benchmarks/target/benchmarks.jar
 ```
 
 ## 📊 Monitoring

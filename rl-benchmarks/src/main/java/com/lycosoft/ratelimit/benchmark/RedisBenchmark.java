@@ -86,7 +86,7 @@ public class RedisBenchmark {
             }
 
             // Initialize Redis storage
-            redisStorage = new RedisStorageProvider(jedisPool);
+            redisStorage = new RedisStorageProvider(jedisPool, true);
 
             // Tiered: Redis L1 + Caffeine L2
             tieredRedisWithCaffeine = new TieredStorageProvider(
@@ -188,27 +188,6 @@ public class RedisBenchmark {
         bh.consume(redisStorage.tryAcquire(keys[index], tokenBucketConfig, System.currentTimeMillis()));
     }
 
-    // ==================== TIERED REDIS + CAFFEINE ====================
-
-    /**
-     * Tiered: Redis L1 + Caffeine L2 (production setup).
-     */
-    @Benchmark
-    public void tiered_redis_caffeine_singleKey(Blackhole bh) {
-        if (!redisAvailable) return;
-        bh.consume(tieredRedisWithCaffeine.tryAcquire("tiered-key", tokenBucketConfig, System.currentTimeMillis()));
-    }
-
-    /**
-     * Tiered: Random keys with Redis L1.
-     */
-    @Benchmark
-    public void tiered_redis_caffeine_randomKeys(Blackhole bh) {
-        if (!redisAvailable) return;
-        int index = ThreadLocalRandom.current().nextInt(KEY_COUNT);
-        bh.consume(tieredRedisWithCaffeine.tryAcquire(keys[index], tokenBucketConfig, System.currentTimeMillis()));
-    }
-
     // ==================== CONCURRENT REDIS ACCESS ====================
 
     /**
@@ -233,14 +212,99 @@ public class RedisBenchmark {
         bh.consume(redisStorage.tryAcquire(key, tokenBucketConfig, System.currentTimeMillis()));
     }
 
+    // ==================== TIERED REDIS + CAFFEINE ====================
+
     /**
-     * Tiered: Concurrent with Redis L1.
+     * Tiered: Redis L1 + Caffeine L2 (production setup, Token Bucket).
+     */
+    @Benchmark
+    public void tiered_redis_caffeine_tokenBucket(Blackhole bh) {
+        if (!redisAvailable) return;
+        bh.consume(tieredRedisWithCaffeine.tryAcquire("tiered-key-tb", tokenBucketConfig, System.currentTimeMillis()));
+    }
+
+    /**
+     * Tiered: Redis L1 + Caffeine L2 (Sliding Window).
+     */
+    @Benchmark
+    public void tiered_redis_caffeine_slidingWindow(Blackhole bh) {
+        if (!redisAvailable) return;
+        bh.consume(tieredRedisWithCaffeine.tryAcquire("tiered-key-sw", slidingWindowConfig, System.currentTimeMillis()));
+    }
+
+    /**
+     * Tiered: Random keys with Redis L1.
+     */
+    @Benchmark
+    public void tiered_redis_caffeine_randomKeys(Blackhole bh) {
+        if (!redisAvailable) return;
+        int index = ThreadLocalRandom.current().nextInt(KEY_COUNT);
+        bh.consume(tieredRedisWithCaffeine.tryAcquire(keys[index], tokenBucketConfig, System.currentTimeMillis()));
+    }
+
+    /**
+     * Tiered: Concurrent access to same key (contention).
      */
     @Benchmark
     @Threads(8)
     public void tiered_concurrent_sameKey(Blackhole bh) {
         if (!redisAvailable) return;
         bh.consume(tieredRedisWithCaffeine.tryAcquire("tiered-contended", tokenBucketConfig, System.currentTimeMillis()));
+    }
+
+    /**
+     * Tiered: Concurrent access to different keys (no contention).
+     */
+    @Benchmark
+    @Threads(8)
+    public void tiered_concurrent_differentKeys(Blackhole bh) {
+        if (!redisAvailable) return;
+        String key = "tiered-thread-" + Thread.currentThread().getId();
+        bh.consume(tieredRedisWithCaffeine.tryAcquire(key, tokenBucketConfig, System.currentTimeMillis()));
+    }
+
+    /**
+     * Tiered: Health check (checks both L1 and L2).
+     */
+    @Benchmark
+    @OutputTimeUnit(TimeUnit.MICROSECONDS)
+    public void tiered_healthCheck(Blackhole bh) {
+        if (!redisAvailable) return;
+        bh.consume(tieredRedisWithCaffeine.isHealthy());
+    }
+
+    /**
+     * Tiered: Diagnostics retrieval.
+     */
+    @Benchmark
+    @OutputTimeUnit(TimeUnit.MICROSECONDS)
+    public void tiered_diagnostics(Blackhole bh) {
+        if (!redisAvailable) return;
+        bh.consume(tieredRedisWithCaffeine.getDiagnostics());
+    }
+
+    /**
+     * Tiered: Circuit breaker state check overhead.
+     */
+    @Benchmark
+    @OutputTimeUnit(TimeUnit.NANOSECONDS)
+    public void tiered_circuitBreaker_stateCheck(Blackhole bh) {
+        if (!redisAvailable) return;
+        bh.consume(tieredRedisWithCaffeine.getCircuitState());
+    }
+
+    /**
+     * Tiered: Batch of 100 operations with Redis L1 + Caffeine L2.
+     */
+    @Benchmark
+    @OperationsPerInvocation(100)
+    @OutputTimeUnit(TimeUnit.MILLISECONDS)
+    public void tiered_batch_100_operations(Blackhole bh) {
+        if (!redisAvailable) return;
+        long now = System.currentTimeMillis();
+        for (int i = 0; i < 100; i++) {
+            bh.consume(tieredRedisWithCaffeine.tryAcquire(keys[i], tokenBucketConfig, now));
+        }
     }
 
     // ==================== LATENCY FOCUSED ====================
