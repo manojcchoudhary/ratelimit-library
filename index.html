@@ -1119,6 +1119,16 @@
             margin-bottom: 20px;
         }
 
+        .usage-card .code-block {
+            margin: 0;
+        }
+
+        .usage-card .code-block pre {
+            margin: 0;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
         /* Config Section */
         .config {
             padding: 100px 0;
@@ -1523,12 +1533,46 @@
                 padding: 80px 0;
             }
 
+            .usage-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
             .usage-card {
                 padding: 24px;
             }
 
+            .usage-card.full-width {
+                grid-column: auto;
+            }
+
+            .usage-card-header {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
             .usage-card-title {
                 font-size: 16px;
+            }
+
+            .usage-card-desc {
+                font-size: 13px;
+                margin-bottom: 16px;
+            }
+
+            .usage-card .code-block {
+                margin: 0 -24px -24px -24px;
+                border-radius: 0 0 16px 16px;
+            }
+
+            .usage-card .code-block pre {
+                padding: 16px;
+                font-size: 11px;
+            }
+
+            .usage-card .code-block code {
+                font-size: 11px;
+                line-height: 1.5;
             }
 
             .config {
@@ -1750,12 +1794,44 @@
                 padding: 60px 0;
             }
 
+            .usage-grid {
+                gap: 16px;
+            }
+
             .usage-card {
-                padding: 20px;
+                padding: 16px;
+                border-radius: 12px;
             }
 
             .usage-card-header {
-                margin-bottom: 16px;
+                margin-bottom: 12px;
+            }
+
+            .usage-card-icon {
+                font-size: 18px;
+            }
+
+            .usage-card-title {
+                font-size: 15px;
+            }
+
+            .usage-card-desc {
+                font-size: 12px;
+                margin-bottom: 12px;
+            }
+
+            .usage-card .code-block {
+                margin: 0 -16px -16px -16px;
+                border-radius: 0 0 12px 12px;
+            }
+
+            .usage-card .code-block pre {
+                padding: 12px;
+            }
+
+            .usage-card .code-block code {
+                font-size: 10px;
+                line-height: 1.4;
             }
 
             .config {
