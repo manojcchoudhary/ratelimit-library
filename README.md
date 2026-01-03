@@ -46,7 +46,7 @@ A production-grade, high-performance rate limiting library for Java applications
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-adapter-spring</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>0.1.0-beta.1</version>
 </dependency>
 ```
 
@@ -54,7 +54,7 @@ A production-grade, high-performance rate limiting library for Java applications
 ```java
 @RestController
 public class OrderController {
-    
+
     @RateLimit(requests = 100, window = 60)
     @GetMapping("/orders")
     public List<Order> getOrders() {
@@ -72,7 +72,7 @@ That's it! The library auto-configures itself with sensible defaults.
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-adapter-quarkus</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>0.1.0-beta.1</version>
 </dependency>
 ```
 
@@ -160,7 +160,25 @@ public Result process(@RequestBody ProcessRequest request) {
 }
 ```
 
-For complete documentation, see [PROJECT_COMPLETE.md](docs/PROJECT_COMPLETE.md).
+## 📖 Documentation
+
+Comprehensive developer documentation is available for each use case:
+
+| Guide | Description |
+|-------|-------------|
+| [Developer Guide](docs/DEVELOPER_GUIDE.md) | Complete unified documentation |
+| [Simple Project Guide](docs/simple-project/README.md) | Standalone Java without frameworks |
+| [Spring Boot Guide](docs/spring-boot/README.md) | Spring Boot with annotations & YAML |
+| [Quarkus Guide](docs/quarkus/README.md) | Quarkus with CDI & reactive support |
+
+Each guide covers:
+- Rate limiting algorithms (Token Bucket, Sliding Window)
+- Complete YAML/Properties configuration reference
+- Storage backends (Caffeine, Redis, Tiered)
+- Security features (SpEL injection prevention, IP spoofing protection)
+- Resilience patterns (Circuit Breaker, Failover)
+- Monitoring & observability (Prometheus metrics)
+- Production deployment recommendations
 
 ## ⚙️ Configuration
 

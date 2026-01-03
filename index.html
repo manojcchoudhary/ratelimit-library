@@ -1998,6 +1998,7 @@
                 <li role="none"><a href="#architecture" role="menuitem">Architecture</a></li>
                 <li role="none"><a href="#quickstart" role="menuitem">Quick Start</a></li>
                 <li role="none"><a href="#usage" role="menuitem">Examples</a></li>
+                <li role="none"><a href="https://github.com/manojcchoudhary/ratelimit-library/blob/main/docs/DEVELOPER_GUIDE.md" role="menuitem">Docs</a></li>
             </ul>
 
             <div class="nav-cta">
@@ -2020,6 +2021,7 @@
     <a href="#architecture" class="mobile-menu-link">Architecture</a>
     <a href="#quickstart" class="mobile-menu-link">Quick Start</a>
     <a href="#usage" class="mobile-menu-link">Examples</a>
+    <a href="https://github.com/manojcchoudhary/ratelimit-library/blob/main/docs/DEVELOPER_GUIDE.md" class="mobile-menu-link">Docs</a>
     <a href="https://github.com/manojcchoudhary/ratelimit-library" target="_blank" class="mobile-menu-link" rel="noopener noreferrer">
         <i class="fa-brands fa-github" aria-hidden="true"></i> GitHub
     </a>
@@ -2387,8 +2389,11 @@ public class OrderController {
             </div>
 
             <div class="fade-up" style="margin-top: 24px;">
-                <a href="https://github.com/manojcchoudhary/ratelimit-library/tree/main/rl-adapter-spring#readme" target="_blank" class="btn btn-secondary" style="font-size: 13px;">
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/blob/main/docs/spring-boot/README.md" target="_blank" class="btn btn-secondary" style="font-size: 13px;">
                     <i class="fa-solid fa-book"></i> Spring Boot Documentation
+                </a>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/blob/main/docs/DEVELOPER_GUIDE.md" target="_blank" class="btn btn-secondary" style="font-size: 13px; margin-left: 8px;">
+                    <i class="fa-solid fa-code"></i> Developer Guide
                 </a>
             </div>
         </div>
@@ -2428,8 +2433,11 @@ public class OrderResource {
             </div>
 
             <div class="fade-up" style="margin-top: 24px;">
-                <a href="https://github.com/manojcchoudhary/ratelimit-library/tree/main/rl-adapter-quarkus#readme" target="_blank" class="btn btn-secondary" style="font-size: 13px;">
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/blob/main/docs/quarkus/README.md" target="_blank" class="btn btn-secondary" style="font-size: 13px;">
                     <i class="fa-solid fa-book"></i> Quarkus Documentation
+                </a>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/blob/main/docs/DEVELOPER_GUIDE.md" target="_blank" class="btn btn-secondary" style="font-size: 13px; margin-left: 8px;">
+                    <i class="fa-solid fa-code"></i> Developer Guide
                 </a>
             </div>
         </div>
@@ -2551,6 +2559,65 @@ sum(rate(ratelimit_allowed_total[5m]))</code></pre>
     </div>
 </section>
 
+<!-- Documentation Section -->
+<section class="docs-section" id="documentation" style="padding: 80px 0; background: var(--bg-secondary);">
+    <div class="container">
+        <div class="section-header" style="margin-bottom: 48px;">
+            <div class="section-label fade-up">Documentation</div>
+            <h2 class="section-title reveal-text">Comprehensive Guides</h2>
+            <p class="section-subtitle fade-up">
+                Everything you need to implement rate limiting in your application.
+            </p>
+        </div>
+
+        <div class="config-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+            <div class="config-card fade-up" style="display: flex; flex-direction: column;">
+                <h3>
+                    <i class="fa-solid fa-book" style="color: var(--accent);"></i>
+                    Developer Guide
+                </h3>
+                <p>Complete reference for all features, algorithms, and YAML configuration options.</p>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/blob/main/docs/DEVELOPER_GUIDE.md" target="_blank" class="btn btn-secondary" style="margin-top: auto; font-size: 13px;">
+                    <i class="fa-solid fa-arrow-right"></i> Read Guide
+                </a>
+            </div>
+
+            <div class="config-card fade-up" style="display: flex; flex-direction: column;">
+                <h3>
+                    <i class="fa-brands fa-java" style="color: #f89820;"></i>
+                    Spring Boot Guide
+                </h3>
+                <p>Annotation-driven rate limiting with auto-configuration for Spring Boot applications.</p>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/blob/main/docs/spring-boot/README.md" target="_blank" class="btn btn-secondary" style="margin-top: auto; font-size: 13px;">
+                    <i class="fa-solid fa-arrow-right"></i> Read Guide
+                </a>
+            </div>
+
+            <div class="config-card fade-up" style="display: flex; flex-direction: column;">
+                <h3>
+                    <i class="fa-solid fa-bolt" style="color: #4695eb;"></i>
+                    Quarkus Guide
+                </h3>
+                <p>CDI interceptors with reactive support and native compilation compatibility.</p>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/blob/main/docs/quarkus/README.md" target="_blank" class="btn btn-secondary" style="margin-top: auto; font-size: 13px;">
+                    <i class="fa-solid fa-arrow-right"></i> Read Guide
+                </a>
+            </div>
+
+            <div class="config-card fade-up" style="display: flex; flex-direction: column;">
+                <h3>
+                    <i class="fa-solid fa-cube" style="color: #10b981;"></i>
+                    Standalone Guide
+                </h3>
+                <p>Use the core library directly in any Java application without frameworks.</p>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/blob/main/docs/simple-project/README.md" target="_blank" class="btn btn-secondary" style="margin-top: auto; font-size: 13px;">
+                    <i class="fa-solid fa-arrow-right"></i> Read Guide
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- CTA Section -->
 <section class="cta-section" style="padding: 100px 0; text-align: center; background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);">
     <div class="container">
@@ -2579,6 +2646,10 @@ sum(rate(ratelimit_allowed_total[5m]))</code></pre>
                 <a href="https://github.com/manojcchoudhary/ratelimit-library" target="_blank" title="View source code on GitHub" rel="noopener noreferrer">
                     <i class="fa-brands fa-github" aria-hidden="true"></i>
                     <span class="visually-hidden">GitHub</span>
+                </a>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/blob/main/docs/DEVELOPER_GUIDE.md" target="_blank" title="Developer Guide" rel="noopener noreferrer">
+                    <i class="fa-solid fa-book" aria-hidden="true"></i>
+                    <span class="visually-hidden">Developer Guide</span>
                 </a>
                 <a href="https://github.com/manojcchoudhary/ratelimit-library/issues" target="_blank" title="Report bugs and issues" rel="noopener noreferrer">
                     <i class="fa-solid fa-bug" aria-hidden="true"></i>
