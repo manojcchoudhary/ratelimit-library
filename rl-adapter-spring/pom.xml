@@ -18,9 +18,9 @@
     <description>Spring Boot adapter with AOP and SpEL support</description>
 
     <properties>
-        <spring-boot.version>3.2.0</spring-boot.version>
-        <spring-security.version>6.2.0</spring-security.version>
-        <micrometer.version>1.12.0</micrometer.version>
+        <spring-boot.version>3.5.9</spring-boot.version>
+        <spring-security.version>6.5.0</spring-security.version>
+        <micrometer.version>1.15.0</micrometer.version>
     </properties>
 
     <dependencies>

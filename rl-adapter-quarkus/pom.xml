@@ -18,10 +18,10 @@
     <description>Quarkus adapter with CDI and SmallRye support</description>
 
     <properties>
-        <quarkus.version>3.6.0</quarkus.version>
-        <jakarta.cdi.version>4.0.1</jakarta.cdi.version>
-        <jakarta.interceptor.version>2.1.0</jakarta.interceptor.version>
-        <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
+        <quarkus.version>3.17.0</quarkus.version>
+        <jakarta.cdi.version>4.1.0</jakarta.cdi.version>
+        <jakarta.interceptor.version>2.2.0</jakarta.interceptor.version>
+        <jakarta.ws.rs.version>4.0.0</jakarta.ws.rs.version>
     </properties>
 
     <dependencies>
