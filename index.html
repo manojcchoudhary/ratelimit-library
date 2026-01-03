@@ -1091,6 +1091,8 @@
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 32px;
+            overflow: hidden;
+            min-width: 0;
         }
 
         .usage-card.full-width {
@@ -1121,12 +1123,18 @@
 
         .usage-card .code-block {
             margin: 0;
+            overflow: hidden;
         }
 
         .usage-card .code-block pre {
             margin: 0;
-            max-width: 100%;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .usage-card .code-block code {
+            white-space: pre;
+            display: block;
         }
 
         /* Config Section */
