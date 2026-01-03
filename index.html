@@ -1,460 +1,1498 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="lenis lenis-smooth">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rate Limiting Library | Production-Grade Java Rate Limiter</title>
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap"
-            rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-    <link
-            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
-            rel="stylesheet"
-    />
+    <!-- Prism.js for code highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
 
-    <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <meta name="google-site-verification" content="zScesua8v0mS7-hwcoygECiouKkYjm3Hd-LwAPehH4w" />
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ["Inter", "sans-serif"],
-                        mono: ["Fira Code", "monospace"],
-                    },
-                    colors: {
-                        brand: {
-                            50: "#f0f9ff",
-                            100: "#e0f2fe",
-                            500: "#0ea5e9",
-                            600: "#0284c7",
-                            900: "#0c4a6e",
-                        },
-                    },
-                },
-            },
-        };
-    </script>
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/split-type@0.3.3/umd/index.min.js"></script>
+
+    <!-- Lenis Smooth Scroll -->
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
 
     <style>
-        /* Custom scrollbar for code blocks */
-        pre::-webkit-scrollbar,
-        .overflow-x-auto::-webkit-scrollbar {
+        :root {
+            /* New Color Palette */
+            --bg-primary: #0a0f1a;
+            --bg-secondary: #0d1424;
+            --bg-tertiary: #131c2e;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            /* Primary: Deep Blue (Java/Professionalism) */
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e3a8a;
+
+            /* Secondary: Vibrant Green (Success/Allowed) */
+            --success: #10b981;
+            --success-light: #34d399;
+            --success-dark: #059669;
+
+            /* Accent: Alert Red (Rate Limited/Denied) */
+            --danger: #ef4444;
+            --danger-light: #f87171;
+            --danger-dark: #dc2626;
+
+            /* Legacy mappings for compatibility */
+            --accent: var(--primary-light);
+            --accent-light: #60a5fa;
+            --accent-dark: var(--primary);
+            --border: rgba(255, 255, 255, 0.08);
+            --gradient-start: var(--primary-light);
+            --gradient-end: var(--success);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Typography */
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .nav.scrolled {
+            background: rgba(10, 10, 11, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 0;
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .nav-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent), var(--gradient-end));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .nav-logo-text {
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .nav-logo-text span {
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-github {
+            color: var(--text-secondary);
+            font-size: 22px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-github:hover {
+            color: var(--text-primary);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 120px 0 80px;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+        }
+
+        .hero-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black 70%, transparent 100%);
+        }
+
+        .hero-glow {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            top: -400px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--primary-light);
+            margin-bottom: 32px;
+        }
+
+        .hero-badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .hero-title {
+            font-size: clamp(40px, 6vw, 72px);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-title .gradient {
+            background: linear-gradient(135deg, var(--accent-light), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+        }
+
+        .hero-badges {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .hero-badges img {
+            height: 24px;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .hero-badges img:hover {
+            opacity: 1;
+        }
+
+        /* Hero Visualization */
+        .hero-visualization {
+            margin-top: 60px;
+            position: relative;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .traffic-flow {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            height: 180px;
+        }
+
+        .flow-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, var(--primary-light) 20%, var(--primary-light) 80%, transparent 100%);
+            opacity: 0.3;
+        }
+
+        .gatekeeper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .gate-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: 2px solid var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+            animation: gatePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes gatePulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.4); }
+            50% { box-shadow: 0 0 50px rgba(59, 130, 246, 0.6); }
+        }
+
+        .gate-label {
+            margin-top: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        /* Traffic dots */
+        .traffic-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .traffic-dot.incoming {
+            background: var(--text-secondary);
+            box-shadow: 0 0 10px rgba(148, 163, 184, 0.5);
+        }
+
+        .traffic-dot.allowed {
+            background: var(--success);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+        }
+
+        .traffic-dot.denied {
+            background: var(--danger);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+        }
+
+        /* Incoming dots animation */
+        .dot-1 { left: 5%; animation: flowIn 3s ease-in-out infinite; animation-delay: 0s; }
+        .dot-2 { left: 12%; animation: flowIn 3s ease-in-out infinite; animation-delay: 0.5s; }
+        .dot-3 { left: 19%; animation: flowIn 3s ease-in-out infinite; animation-delay: 1s; }
+        .dot-4 { left: 26%; animation: flowIn 3s ease-in-out infinite; animation-delay: 1.5s; }
+        .dot-5 { left: 33%; animation: flowIn 3s ease-in-out infinite; animation-delay: 2s; }
+
+        @keyframes flowIn {
+            0% { opacity: 0; transform: translateY(-50%) translateX(-20px); }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-50%) translateX(80px); }
+        }
+
+        /* Allowed dots animation (right side, going right) */
+        .dot-allowed-1 { right: 5%; animation: flowOut 2.5s ease-in-out infinite; animation-delay: 0.2s; }
+        .dot-allowed-2 { right: 15%; animation: flowOut 2.5s ease-in-out infinite; animation-delay: 0.8s; }
+        .dot-allowed-3 { right: 25%; animation: flowOut 2.5s ease-in-out infinite; animation-delay: 1.4s; }
+
+        @keyframes flowOut {
+            0% { opacity: 0; transform: translateY(-50%) translateX(-20px); }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-50%) translateX(40px); }
+        }
+
+        /* Denied dots animation (scatter upward/downward) */
+        .dot-denied-1 { left: 55%; animation: flowDeniedUp 3s ease-out infinite; animation-delay: 0.6s; }
+        .dot-denied-2 { left: 58%; animation: flowDeniedDown 3s ease-out infinite; animation-delay: 1.8s; }
+
+        @keyframes flowDeniedUp {
+            0% { opacity: 0; transform: translate(0, -50%); }
+            20% { opacity: 1; transform: translate(0, -50%); }
+            100% { opacity: 0; transform: translate(30px, -80px); }
+        }
+
+        @keyframes flowDeniedDown {
+            0% { opacity: 0; transform: translate(0, -50%); }
+            20% { opacity: 1; transform: translate(0, -50%); }
+            100% { opacity: 0; transform: translate(30px, 30px); }
+        }
+
+        /* Labels */
+        .flow-label {
+            position: absolute;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            top: 10px;
+        }
+
+        .flow-label.incoming-label {
+            left: 10%;
+            color: var(--text-muted);
+        }
+
+        .flow-label.allowed-label {
+            right: 10%;
+            color: var(--success);
+        }
+
+        .flow-label.denied-label {
+            right: 35%;
+            top: auto;
+            bottom: 10px;
+            color: var(--danger);
+        }
+
+        /* Framework Icons */
+        .framework-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            margin-right: 4px;
+        }
+
+        .framework-icon.spring {
+            color: #6DB33F;
+        }
+
+        .framework-icon.quarkus {
+            color: #4695EB;
+        }
+
+        .framework-icon.redis {
+            color: #DC382D;
+        }
+
+        /* Stats Marquee */
+        .stats-marquee {
+            padding: 60px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            overflow: hidden;
+        }
+
+        .marquee-track {
+            display: flex;
+            gap: 80px;
+            animation: marquee 30s linear infinite;
+        }
+
+        .marquee-track:hover {
+            animation-play-state: paused;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            white-space: nowrap;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 120px 0;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: clamp(32px, 4vw, 48px);
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon.blue { background: rgba(14, 165, 233, 0.15); color: #38bdf8; }
+        .feature-icon.green { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        .feature-icon.purple { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+        .feature-icon.orange { background: rgba(249, 115, 22, 0.15); color: #fb923c; }
+        .feature-icon.red { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .feature-icon.cyan { background: rgba(6, 182, 212, 0.15); color: #22d3ee; }
+
+        .feature-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-desc {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 100px 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 56px;
+            font-weight: 800;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .stat-value .unit {
+            font-size: 32px;
+            color: var(--accent);
+        }
+
+        .stat-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Architecture Section */
+        .architecture {
+            padding: 120px 0;
+        }
+
+        .architecture-table {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .architecture-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .architecture-table th {
+            background: var(--bg-tertiary);
+            padding: 16px 24px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .architecture-table td {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            font-size: 15px;
+        }
+
+        .architecture-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .architecture-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .module-name {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .module-size {
+            color: var(--text-muted);
+        }
+
+        /* Quick Start Section */
+        .quickstart {
+            padding: 120px 0;
+            background: var(--bg-secondary);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+            background: var(--bg-tertiary);
+            padding: 6px;
+            border-radius: 12px;
+            width: fit-content;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .code-block {
+            background: #1a1a1d;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .code-copy {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .code-copy:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* Usage Section */
+        .usage {
+            padding: 120px 0;
+        }
+
+        .usage-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .usage-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .usage-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+        }
+
+        .usage-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .usage-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .usage-card-icon {
+            font-size: 20px;
+        }
+
+        .usage-card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .usage-card-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        /* Config Section */
+        .config {
+            padding: 100px 0;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .config-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 80px 0 40px;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-content {
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .footer-logo span {
+            color: var(--accent);
+        }
+
+        .footer-tagline {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            font-size: 24px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        .footer-copy {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Animations - elements start visible, JS adds animation classes */
+        .reveal-text .char {
+            display: inline-block;
+        }
+
+        .fade-up {
+            /* Will be animated by GSAP */
+        }
+
+        .fade-in {
+            /* Will be animated by GSAP */
+        }
+
+        .scale-in {
+            /* Will be animated by GSAP */
+        }
+
+        /* Animation states set by JS */
+        .gsap-init .fade-up {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        .gsap-init .reveal-text .char {
+            opacity: 0;
+        }
+
+        /* Mobile Navigation */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-title {
+                font-size: 36px;
+            }
+
+            .hero-subtitle {
+                font-size: 16px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
             height: 8px;
         }
-        pre::-webkit-scrollbar-track,
-        .overflow-x-auto::-webkit-scrollbar-track {
-            background: #1e1e1e;
-            border-radius: 4px;
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
         }
-        pre::-webkit-scrollbar-thumb,
-        .overflow-x-auto::-webkit-scrollbar-thumb {
-            background: #4b5563;
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
             border-radius: 4px;
         }
 
-        /* Light mode scrollbar for tables */
-        div.overflow-x-auto::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        div.overflow-x-auto::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
         }
 
-        .blob {
-            position: absolute;
-            filter: blur(40px);
-            z-index: -1;
-            opacity: 0.4;
+        /* Code scrollbar */
+        pre::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        pre::-webkit-scrollbar-track {
+            background: #1a1a1d;
+        }
+
+        pre::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased">
-<!-- Main Wrapper to prevent horizontal overflow from blobs -->
-<div class="relative w-full overflow-x-hidden min-h-screen">
+<body>
 
-    <!-- Blobs -->
-    <div
-            class="blob bg-blue-300 w-64 h-64 md:w-96 md:h-96 rounded-full top-0 left-0 -translate-x-1/2 -translate-y-1/2"
-    ></div>
-    <div
-            class="blob bg-purple-300 w-64 h-64 md:w-96 md:h-96 rounded-full top-0 right-0 translate-x-1/3 -translate-y-1/4"
-    ></div>
-
-    <nav
-            class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200"
-    >
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-2">
-                    <img
-                            src="images/rl-logo.png"
-                            onerror="this.style.display='none'; this.nextElementSibling.innerHTML='<i class=\'fa-solid fa-shield-halved text-brand-600 text-2xl\'></i>'"
-                            alt="Rate Limit Icon"
-                            class="w-8 h-8 md:w-10 md:h-10 object-contain"
-                    />
-                    <span class="font-bold text-lg md:text-xl tracking-tight text-slate-900"
-                    >Rate Limit <span class="text-brand-600">Library</span></span
-                    >
+<!-- Navigation -->
+<nav class="nav" id="nav">
+    <div class="container">
+        <div class="nav-inner">
+            <a href="#" class="nav-logo">
+                <div class="nav-logo-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
                 </div>
+                <div class="nav-logo-text">Rate Limit <span>Library</span></div>
+            </a>
 
-                <div class="hidden md:flex space-x-8">
-                    <a
-                            href="#features"
-                            class="text-slate-600 hover:text-brand-600 transition"
-                    >Features</a
-                    >
-                    <a
-                            href="#quickstart"
-                            class="text-slate-600 hover:text-brand-600 transition"
-                    >Quick Start</a
-                    >
-                    <a
-                            href="#usage"
-                            class="text-slate-600 hover:text-brand-600 transition"
-                    >Examples</a
-                    >
-                    <a
-                            href="https://github.com/manojcchoudhary/ratelimit-library"
-                            target="_blank"
-                            class="text-slate-900 hover:text-brand-600 transition"
-                    >
-                        <i class="fa-brands fa-github text-lg"></i>
-                    </a>
-                </div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#quickstart">Quick Start</a></li>
+                <li><a href="#usage">Examples</a></li>
+            </ul>
 
-                <div class="md:hidden flex items-center">
-                    <button
-                            id="mobile-menu-btn"
-                            class="text-slate-600 hover:text-brand-600 focus:outline-none"
-                    >
-                        <i class="fa-solid fa-bars text-2xl"></i>
-                    </button>
-                </div>
+            <div class="nav-cta">
+                <a href="https://github.com/manojcchoudhary/ratelimit-library" target="_blank" class="nav-github">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+                <a href="#quickstart" class="btn btn-primary">Get Started</a>
             </div>
-        </div>
 
-        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-100 shadow-lg absolute w-full left-0">
-            <div class="px-4 pt-2 pb-4 space-y-1">
-                <a
-                        href="#features"
-                        class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
-                        onclick="toggleMenu()"
-                >Features</a
-                >
-                <a
-                        href="#quickstart"
-                        class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
-                        onclick="toggleMenu()"
-                >Quick Start</a
-                >
-                <a
-                        href="#usage"
-                        class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
-                        onclick="toggleMenu()"
-                >Examples</a
-                >
-                <a
-                        href="https://github.com/manojcchoudhary/ratelimit-library"
-                        target="_blank"
-                        class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
-                >
-                    GitHub <i class="fa-brands fa-github ml-1"></i>
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-bg">
+        <div class="hero-grid"></div>
+        <div class="hero-glow"></div>
+    </div>
+
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="hero-badge-dot"></span>
+                Now in Public Alpha
+            </div>
+
+            <h1 class="hero-title">
+                <span>Stop Bad Traffic.</span><br>
+                <span class="gradient">Ship Faster.</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                The open-source rate limiting library that protects your APIs without slowing you down.
+                One annotation. Sub-millisecond overhead. Works with Spring Boot and Quarkus.
+            </p>
+
+            <div class="hero-actions">
+                <a href="#quickstart" class="btn btn-primary">
+                    <i class="fa-solid fa-bolt"></i> Start in 2 Minutes
+                </a>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library" target="_blank" class="btn btn-secondary">
+                    <i class="fa-brands fa-github"></i> Star on GitHub
                 </a>
             </div>
+
+            <div class="hero-badges">
+                <img src="https://img.shields.io/badge/Java-17+-blue.svg?style=flat-square&logo=openjdk&logoColor=white" alt="Java 17+" />
+                <img src="https://img.shields.io/badge/Spring_Boot-3.x-6DB33F.svg?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot" />
+                <img src="https://img.shields.io/badge/Quarkus-3.x-4695EB.svg?style=flat-square&logo=quarkus&logoColor=white" alt="Quarkus" />
+                <img src="https://img.shields.io/badge/Apache_2.0-License-blue.svg?style=flat-square" alt="License" />
+            </div>
+
+            <!-- Traffic Flow Visualization -->
+            <div class="hero-visualization">
+                <div class="traffic-flow">
+                    <!-- Flow line -->
+                    <div class="flow-line"></div>
+
+                    <!-- Labels -->
+                    <span class="flow-label incoming-label">Requests</span>
+                    <span class="flow-label allowed-label">Allowed</span>
+                    <span class="flow-label denied-label">Rate Limited</span>
+
+                    <!-- Incoming traffic dots -->
+                    <div class="traffic-dot incoming dot-1"></div>
+                    <div class="traffic-dot incoming dot-2"></div>
+                    <div class="traffic-dot incoming dot-3"></div>
+                    <div class="traffic-dot incoming dot-4"></div>
+                    <div class="traffic-dot incoming dot-5"></div>
+
+                    <!-- Gatekeeper -->
+                    <div class="gatekeeper">
+                        <div class="gate-icon">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <span class="gate-label">Rate Limiter</span>
+                    </div>
+
+                    <!-- Allowed traffic dots -->
+                    <div class="traffic-dot allowed dot-allowed-1"></div>
+                    <div class="traffic-dot allowed dot-allowed-2"></div>
+                    <div class="traffic-dot allowed dot-allowed-3"></div>
+
+                    <!-- Denied traffic dots -->
+                    <div class="traffic-dot denied dot-denied-1"></div>
+                    <div class="traffic-dot denied dot-denied-2"></div>
+                </div>
+            </div>
         </div>
-    </nav>
+    </div>
+</section>
 
-    <section class="pt-12 md:pt-20 pb-12 md:pb-16 px-4 text-center max-w-5xl mx-auto">
-        <div
-                class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-600 text-xs md:text-sm font-medium mb-6 border border-brand-100"
-        >
-                <span class="relative flex h-2 w-2">
-                  <span
-                          class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"
-                  ></span>
-                  <span
-                          class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"
-                  ></span>
-                </span>
-            v0.1.2-alpha Available
+<!-- Stats Marquee -->
+<section class="stats-marquee">
+    <div class="marquee-track">
+        <div class="stat-item">
+            <span class="stat-number">&lt;500</span>
+            <span class="stat-label">Microseconds Overhead</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">1</span>
+            <span class="stat-label">Annotation to Protect</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">0</span>
+            <span class="stat-label">Config Required</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Open Source</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">Redis</span>
+            <span class="stat-label">Ready for Scale</span>
+        </div>
+        <!-- Duplicate for seamless loop -->
+        <div class="stat-item">
+            <span class="stat-number">&lt;500</span>
+            <span class="stat-label">Microseconds Overhead</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">1</span>
+            <span class="stat-label">Annotation to Protect</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">0</span>
+            <span class="stat-label">Config Required</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Open Source</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">Redis</span>
+            <span class="stat-label">Ready for Scale</span>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features" id="features">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label fade-up">Why This Library</div>
+            <h2 class="section-title reveal-text">Built for Real Production</h2>
+            <p class="section-subtitle fade-up">
+                Designed with production patterns in mind. Clean architecture. Extensible by design.
+            </p>
         </div>
 
-        <h1
-                class="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6"
-        >
-            Open Source Production-Grade <br class="hidden md:block" />
-            <span
-                    class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600"
-            >Rate Limiting for Java</span
-            >
-        </h1>
-
-        <p
-                class="text-base md:text-xl text-slate-600 mb-8 max-w-3xl mx-auto leading-relaxed"
-        >
-            A high-performance library for Spring Boot and Quarkus. Distributed,
-            resilient, and ready for massive scale with Redis and Lua support.
-        </p>
-
-        <div class="flex flex-col sm:flex-row justify-center gap-4 mb-10 px-4 sm:px-0">
-            <a
-                    href="#quickstart"
-                    class="bg-brand-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-700 transition shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2 w-full sm:w-auto"
-            >
-                <i class="fa-solid fa-bolt"></i> Get Started
-            </a>
-            <a
-                    href="https://github.com/manojcchoudhary/ratelimit-library"
-                    target="_blank"
-                    class="bg-white text-slate-700 border border-slate-300 px-8 py-3 rounded-lg font-semibold hover:bg-slate-50 transition flex items-center justify-center gap-2 w-full sm:w-auto"
-            >
-                <i class="fa-brands fa-github"></i> View on GitHub
-            </a>
-        </div>
-
-        <div class="flex flex-wrap justify-center gap-3 opacity-90 px-2">
-            <img
-                    src="https://img.shields.io/badge/Java-17+-blue.svg?style=flat-square&logo=java"
-                    alt="Java 17+"
-                    class="h-6"
-            />
-            <img
-                    src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square"
-                    alt="License"
-                    class="h-6"
-            />
-            <img
-                    src="https://img.shields.io/badge/build-passing-brightgreen?style=flat-square"
-                    alt="Build"
-                    class="h-6"
-            />
-        </div>
-    </section>
-
-    <section id="features" class="py-12 md:py-16 bg-white border-y border-slate-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-10 md:mb-16">
-                <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
-                    Engineered for Performance
-                </h2>
-                <p class="text-slate-600">
-                    Built to handle high throughput with minimal overhead.
+        <div class="features-grid">
+            <div class="feature-card fade-up">
+                <div class="feature-icon blue">
+                    <i class="fa-solid fa-gauge-high"></i>
+                </div>
+                <h3 class="feature-title">Blazing Fast</h3>
+                <p class="feature-desc">
+                    Sub-millisecond decisions won't slow your hot paths. O(1) algorithms,
+                    lock-free data structures, and zero allocations in the critical path.
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                <div
-                        class="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition"
-                >
-                    <div
-                            class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-4"
-                    >
-                        <i class="fa-solid fa-microchip text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-2">
-                        High Performance
-                    </h3>
-                    <p class="text-slate-600 text-sm">
-                        O(1) algorithms with &lt;500μs local overhead and &lt;2ms
-                        distributed overhead.
-                    </p>
+            <div class="feature-card fade-up">
+                <div class="feature-icon green">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </div>
+                <h3 class="feature-title">One Line Setup</h3>
+                <p class="feature-desc">
+                    Add @RateLimit and you're done. No XML configs, no boilerplate,
+                    no ceremony. Works instantly with Spring Boot and Quarkus.
+                </p>
+            </div>
 
-                <div
-                        class="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition"
-                >
-                    <div
-                            class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-green-600 mb-4"
-                    >
-                        <i class="fa-brands fa-envira text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-2">
-                        Spring & Quarkus
-                    </h3>
-                    <p class="text-slate-600 text-sm">
-                        Zero-config annotation support for Spring Boot and CDI
-                        interceptors for Quarkus.
-                    </p>
+            <div class="feature-card fade-up">
+                <div class="feature-icon red">
+                    <i class="fa-solid fa-arrows-split-up-and-left"></i>
                 </div>
+                <h3 class="feature-title">Scales Horizontally</h3>
+                <p class="feature-desc">
+                    Redis backend with atomic Lua scripts ensures consistent limits
+                    across your entire cluster. No double-counting, no race conditions.
+                </p>
+            </div>
 
-                <div
-                        class="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition"
-                >
-                    <div
-                            class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 mb-4"
-                    >
-                        <i class="fa-solid fa-server text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-2">
-                        Distributed Storage
-                    </h3>
-                    <p class="text-slate-600 text-sm">
-                        Redis support with atomic Lua scripts, version verification, and
-                        automatic reload.
-                    </p>
+            <div class="feature-card fade-up">
+                <div class="feature-icon purple">
+                    <i class="fa-solid fa-heart-pulse"></i>
                 </div>
+                <h3 class="feature-title">Fails Gracefully</h3>
+                <p class="feature-desc">
+                    Redis down? Circuit breakers kick in. Tiered L1/L2 storage keeps
+                    your app running. Designed for the chaos of production.
+                </p>
+            </div>
 
-                <div
-                        class="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition"
-                >
-                    <div
-                            class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 mb-4"
-                    >
-                        <i class="fa-solid fa-layer-group text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-2">
-                        Production Resilient
-                    </h3>
-                    <p class="text-slate-600 text-sm">
-                        Circuit breakers, L1/L2 tiered storage, and CAP-aware mode
-                        switching.
-                    </p>
+            <div class="feature-card fade-up">
+                <div class="feature-icon orange">
+                    <i class="fa-solid fa-shield-halved"></i>
                 </div>
+                <h3 class="feature-title">Security First</h3>
+                <p class="feature-desc">
+                    SpEL injection attacks? Blocked. Key enumeration? Prevented.
+                    PII in logs? Masked. We sweat the security details so you don't have to.
+                </p>
+            </div>
 
-                <div
-                        class="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition"
-                >
-                    <div
-                            class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600 mb-4"
-                    >
-                        <i class="fa-solid fa-lock text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-2">
-                        Security Hardened
-                    </h3>
-                    <p class="text-slate-600 text-sm">
-                        SpEL injection prevention, ClassLoader blocking, and PII
-                        protection.
-                    </p>
+            <div class="feature-card fade-up">
+                <div class="feature-icon cyan">
+                    <i class="fa-solid fa-binoculars"></i>
                 </div>
-
-                <div
-                        class="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition"
-                >
-                    <div
-                            class="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center text-cyan-600 mb-4"
-                    >
-                        <i class="fa-solid fa-chart-line text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-2">Observability</h3>
-                    <p class="text-slate-600 text-sm">
-                        Built-in Prometheus metrics, async audit logging, and circuit
-                        state monitoring.
-                    </p>
-                </div>
+                <h3 class="feature-title">Full Visibility</h3>
+                <p class="feature-desc">
+                    Prometheus metrics out of the box. Know exactly who's hitting limits,
+                    what's being blocked, and when to adjust your quotas.
+                </p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section class="py-12 md:py-16 bg-slate-50">
-        <div class="max-w-4xl mx-auto px-4">
-            <h2 class="text-2xl font-bold text-slate-900 mb-8 text-center">
-                Modular Architecture
-            </h2>
-            <div
-                    class="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200"
-            >
-                <table class="w-full text-left border-collapse min-w-[600px]">
-                    <thead>
-                    <tr
-                            class="bg-slate-50 text-slate-600 text-sm uppercase tracking-wider border-b border-slate-200"
-                    >
-                        <th class="p-4 font-semibold">Module</th>
-                        <th class="p-4 font-semibold">Description</th>
-                        <th class="p-4 font-semibold">Size</th>
-                    </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
-                    <tr>
-                        <td class="p-4 font-mono text-brand-600">rl-core</td>
-                        <td class="p-4">Core algorithms, SPIs, security, resilience</td>
-                        <td class="p-4 text-slate-500">~10,800 LOC</td>
-                    </tr>
-                    <tr>
-                        <td class="p-4 font-mono text-brand-600">rl-spi-redis</td>
-                        <td class="p-4">Redis storage with versioned Lua scripts</td>
-                        <td class="p-4 text-slate-500">~770 LOC</td>
-                    </tr>
-                    <tr>
-                        <td class="p-4 font-mono text-brand-600">rl-spi-caffeine</td>
-                        <td class="p-4">High-performance in-memory storage</td>
-                        <td class="p-4 text-slate-500">~800 LOC</td>
-                    </tr>
-                    <tr>
-                        <td class="p-4 font-mono text-brand-600">rl-adapter-spring</td>
-                        <td class="p-4">Spring Boot integration with AOP</td>
-                        <td class="p-4 text-slate-500">~2,760 LOC</td>
-                    </tr>
-                    <tr>
-                        <td class="p-4 font-mono text-brand-600">rl-adapter-quarkus</td>
-                        <td class="p-4">Quarkus CDI integration</td>
-                        <td class="p-4 text-slate-500">~800 LOC</td>
-                    </tr>
-                    </tbody>
-                </table>
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card fade-up">
+                <div class="stat-value">&lt;<span class="counter" data-target="500">0</span><span class="unit">μs</span></div>
+                <div class="stat-description">Per-Request Overhead</div>
             </div>
-            <p class="text-center text-slate-500 text-sm mt-4">
-                Total: ~15,900 lines of production code
+            <div class="stat-card fade-up">
+                <div class="stat-value"><span class="counter" data-target="1">0</span><span class="unit">M+</span></div>
+                <div class="stat-description">Requests/sec Tested</div>
+            </div>
+            <div class="stat-card fade-up">
+                <div class="stat-value"><span class="counter" data-target="0">0</span></div>
+                <div class="stat-description">Dependencies (Core)</div>
+            </div>
+            <div class="stat-card fade-up">
+                <div class="stat-value"><span class="counter" data-target="100">0</span><span class="unit">%</span></div>
+                <div class="stat-description">Test Coverage</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Architecture Section -->
+<section class="architecture" id="architecture">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label fade-up">Architecture</div>
+            <h2 class="section-title reveal-text">Use Only What You Need</h2>
+            <p class="section-subtitle fade-up">
+                Modular by design. Small JARs. No bloat. Mix and match for your stack.
             </p>
         </div>
-    </section>
 
-    <section id="quickstart" class="py-12 md:py-16 bg-white">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6">
-            <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Quick Start</h2>
-            <p class="text-slate-600 mb-8">
-                Get up and running in less than 2 minutes.
+        <div class="architecture-table fade-up">
+            <table>
+                <thead>
+                <tr>
+                    <th>Module</th>
+                    <th>What It Does</th>
+                    <th>Size</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        <span style="color: var(--primary-light); margin-right: 8px;"><i class="fa-solid fa-cube"></i></span>
+                        <span class="module-name">rl-core</span>
+                    </td>
+                    <td>The engine: algorithms, resilience, security. Zero dependencies.</td>
+                    <td><span class="module-size">~10.8K LOC</span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span style="color: #DC382D; margin-right: 8px;"><i class="fa-solid fa-database"></i></span>
+                        <span class="module-name">rl-spi-redis</span>
+                    </td>
+                    <td>Distributed storage. Atomic Lua scripts. Cluster-ready.</td>
+                    <td><span class="module-size">~770 LOC</span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span style="color: #8B4513; margin-right: 8px;"><i class="fa-solid fa-mug-hot"></i></span>
+                        <span class="module-name">rl-spi-caffeine</span>
+                    </td>
+                    <td>In-memory storage. Blazing fast. Great for single-instance.</td>
+                    <td><span class="module-size">~800 LOC</span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span style="color: #6DB33F; margin-right: 8px;"><i class="fa-solid fa-leaf"></i></span>
+                        <span class="module-name">rl-adapter-spring</span>
+                    </td>
+                    <td>Drop-in for Spring Boot. Auto-config. AOP magic included.</td>
+                    <td><span class="module-size">~2.7K LOC</span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span style="color: #4695EB; margin-right: 8px;"><i class="fa-solid fa-atom"></i></span>
+                        <span class="module-name">rl-adapter-quarkus</span>
+                    </td>
+                    <td>Native Quarkus support. CDI interceptors. GraalVM ready.</td>
+                    <td><span class="module-size">~800 LOC</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Start Section -->
+<section class="quickstart" id="quickstart">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label fade-up">Quick Start</div>
+            <h2 class="section-title reveal-text">Two Steps. That's It.</h2>
+            <p class="section-subtitle fade-up">
+                Add the dependency. Add the annotation. Your API is protected.
             </p>
+        </div>
 
-            <div class="flex border-b border-slate-200 mb-6 overflow-x-auto no-scrollbar">
-                <button
-                        onclick="switchTab('spring')"
-                        id="tab-spring"
-                        class="px-6 py-3 font-medium text-brand-600 border-b-2 border-brand-600 transition-colors focus:outline-none whitespace-nowrap"
-                >
-                    <i class="fa-brands fa-java mr-2"></i>Spring Boot
-                </button>
-                <button
-                        onclick="switchTab('quarkus')"
-                        id="tab-quarkus"
-                        class="px-6 py-3 font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition-colors focus:outline-none whitespace-nowrap"
-                >
-                    <i class="fa-solid fa-rocket mr-2"></i>Quarkus
-                </button>
-            </div>
+        <div class="tabs fade-up">
+            <button class="tab-btn active" data-tab="spring">
+                <svg class="framework-icon spring" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                    <path d="M21.8 2.2c-.1-.1-.3-.2-.4-.1-.1 0-4.1 2.4-8.7 5.3-1.2.8-2.4 1.5-3.5 2.2-.7.4-1.4.9-2 1.3-.9.6-1.5 1-1.8 1.3-1.9 1.5-3.2 3.5-3.8 5.8-.5 2.1-.3 4.2.6 6.1.1.2.3.3.5.3h.1c.2-.1.3-.2.3-.4.3-2.7 1.6-5.1 3.6-6.8.6-.5 1.2-1 1.9-1.4.5-.3 1-.6 1.5-.9.8-.5 1.7-1 2.6-1.6 4.5-2.9 8.6-5.2 8.8-5.4.1-.1.2-.3.1-.5-.1-.3-.3-.5-.5-.5 0-.1.1-.2.1-.3 0-.2-.1-.3-.2-.4-.1-.1-.2-.1-.3-.1.1-.1.1-.2.1-.3 0-.2-.1-.3-.2-.4-.1-.1-.2-.1-.3-.1.1-.1.1-.2.1-.3 0-.2-.1-.3-.2-.4-.1-.1-.2-.2-.3-.2z"/>
+                    <path d="M5.2 20.5c-.4 0-.7-.3-.8-.7-.5-2.1-.3-4.4.7-6.4.7-1.5 1.8-2.8 3.2-3.8.5-.4 1.1-.7 1.7-1.1.5-.3 1-.6 1.6-.9.8-.5 1.7-1 2.6-1.6.9-.6 1.8-1.1 2.6-1.6 1.7-1 3.2-1.9 4.3-2.6.3-.2.4-.5.3-.8-.1-.3-.4-.5-.7-.4-1.1.2-2.9.6-5 1.4-2.4.9-5.2 2.3-7.5 4.2-3.7 3-5.8 6.9-5.8 11 0 1 .2 2 .5 2.9.1.3.4.5.7.5h.2c.4-.1.5-.4.4-.7-.2-.5-.3-1.1-.3-1.7 0-3.4 1.7-6.7 4.8-9.2 2-1.6 4.4-2.8 6.6-3.6 1.1-.4 2.1-.7 3-.9-.9.5-1.9 1.2-3 1.9-.8.5-1.7 1-2.6 1.6-.9.5-1.8 1.1-2.6 1.6-.5.3-1 .6-1.5.9-.6.4-1.2.7-1.8 1.2-1.5 1.1-2.7 2.5-3.5 4.2-.9 1.9-1.2 4-.7 6 .1.4.4.6.7.6.1 0 .2 0 .3-.1.4-.1.5-.5.4-.9z"/>
+                </svg>
+                Spring Boot
+            </button>
+            <button class="tab-btn" data-tab="quarkus">
+                <svg class="framework-icon quarkus" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                    <path d="M12 0L1.5 6v12L12 24l10.5-6V6L12 0zm0 2.063l8.25 4.687v.938L12 12.375 3.75 7.688v-.938L12 2.062zM3.75 9.375l7.5 4.312v7.875L3.75 17.25V9.375zm9 12.188v-7.875l7.5-4.313v7.875l-7.5 4.313z"/>
+                </svg>
+                Quarkus
+            </button>
+        </div>
 
-            <div id="content-spring" class="block">
-                <div class="space-y-6">
-                    <div>
-                        <h4 class="font-semibold text-slate-900 mb-2">
-                            1. Add Dependency
-                        </h4>
-                        <!-- Changed overflow-hidden to overflow-x-auto to prevent layout breakage -->
-                        <div class="rounded-lg overflow-x-auto shadow-lg w-full max-w-full">
-                        <pre class="line-numbers text-xs md:text-sm m-0"><code class="language-xml">&lt;dependency&gt;
+        <div class="tab-content active" id="spring">
+            <div class="code-block fade-up">
+                <div class="code-header">
+                    <span class="code-title">1. Add Dependency (pom.xml)</span>
+                    <button class="code-copy" onclick="copyCode(this)">
+                        <i class="fa-regular fa-copy"></i> Copy
+                    </button>
+                </div>
+                <pre><code class="language-xml">&lt;dependency&gt;
     &lt;groupId&gt;com.lycosoft&lt;/groupId&gt;
     &lt;artifactId&gt;rl-adapter-spring&lt;/artifactId&gt;
     &lt;version&gt;0.1.2-alpha&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-slate-900 mb-2">
-                            2. Use the Annotation
-                        </h4>
-                        <div class="rounded-lg overflow-x-auto shadow-lg w-full max-w-full">
-                        <pre class="line-numbers text-xs md:text-sm m-0"><code class="language-java">@RestController
+            </div>
+
+            <div class="code-block fade-up">
+                <div class="code-header">
+                    <span class="code-title">2. Use the Annotation</span>
+                    <button class="code-copy" onclick="copyCode(this)">
+                        <i class="fa-regular fa-copy"></i> Copy
+                    </button>
+                </div>
+                <pre><code class="language-java">@RestController
 public class OrderController {
 
     // Allow 100 requests per 60 seconds
@@ -464,31 +1502,38 @@ public class OrderController {
         return orderService.findAll();
     }
 }</code></pre>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <div id="content-quarkus" class="hidden">
-                <div class="space-y-6">
-                    <div>
-                        <h4 class="font-semibold text-slate-900 mb-2">
-                            1. Add Dependency
-                        </h4>
-                        <div class="rounded-lg overflow-x-auto shadow-lg w-full max-w-full">
-                        <pre class="line-numbers text-xs md:text-sm m-0"><code class="language-xml">&lt;dependency&gt;
+            <div class="fade-up" style="margin-top: 24px;">
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/tree/main/rl-adapter-spring#readme" target="_blank" class="btn btn-secondary" style="font-size: 13px;">
+                    <i class="fa-solid fa-book"></i> Spring Boot Documentation
+                </a>
+            </div>
+        </div>
+
+        <div class="tab-content" id="quarkus">
+            <div class="code-block fade-up">
+                <div class="code-header">
+                    <span class="code-title">1. Add Dependency (pom.xml)</span>
+                    <button class="code-copy" onclick="copyCode(this)">
+                        <i class="fa-regular fa-copy"></i> Copy
+                    </button>
+                </div>
+                <pre><code class="language-xml">&lt;dependency&gt;
     &lt;groupId&gt;com.lycosoft&lt;/groupId&gt;
     &lt;artifactId&gt;rl-adapter-quarkus&lt;/artifactId&gt;
     &lt;version&gt;0.1.2-alpha&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-slate-900 mb-2">
-                            2. Use the Annotation
-                        </h4>
-                        <div class="rounded-lg overflow-x-auto shadow-lg w-full max-w-full">
-                        <pre class="line-numbers text-xs md:text-sm m-0"><code class="language-java">@Path("/orders")
+            </div>
+
+            <div class="code-block fade-up">
+                <div class="code-header">
+                    <span class="code-title">2. Use the Annotation</span>
+                    <button class="code-copy" onclick="copyCode(this)">
+                        <i class="fa-regular fa-copy"></i> Copy
+                    </button>
+                </div>
+                <pre><code class="language-java">@Path("/orders")
 public class OrderResource {
 
     // Allow 100 requests per 60 seconds
@@ -498,31 +1543,39 @@ public class OrderResource {
         return orderService.findAll();
     }
 }</code></pre>
-                        </div>
-                    </div>
-                </div>
+            </div>
+
+            <div class="fade-up" style="margin-top: 24px;">
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/tree/main/rl-adapter-quarkus#readme" target="_blank" class="btn btn-secondary" style="font-size: 13px;">
+                    <i class="fa-solid fa-book"></i> Quarkus Documentation
+                </a>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section id="usage" class="py-12 md:py-16 bg-slate-50 border-t border-slate-200">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6">
-            <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-8 text-center">
-                Advanced Usage Patterns
-            </h2>
+<!-- Usage Section -->
+<section class="usage" id="usage">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label fade-up">Real-World Patterns</div>
+            <h2 class="section-title reveal-text">Beyond the Basics</h2>
+            <p class="section-subtitle fade-up">
+                Powerful enough for complex scenarios. Simple enough to understand.
+            </p>
+        </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200"
-                >
-                    <h3
-                            class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2"
-                    >
-                        <i class="fa-solid fa-user-tag text-purple-600"></i> Per-User
-                        Limits (SpEL)
-                    </h3>
-                    <div class="rounded-lg overflow-x-auto text-xs md:text-sm">
-                      <pre><code class="language-java">@RateLimit(
+        <div class="usage-grid">
+            <div class="usage-card fade-up">
+                <div class="usage-card-header">
+                    <i class="usage-card-icon fa-solid fa-user" style="color: #a78bfa;"></i>
+                    <h3 class="usage-card-title">Limit by User</h3>
+                </div>
+                <p class="usage-card-desc">
+                    Use SpEL expressions to rate limit per authenticated user.
+                </p>
+                <div class="code-block">
+                        <pre><code class="language-java">@RateLimit(
     key = "#user.id",
     requests = 100,
     window = 60
@@ -534,163 +1587,467 @@ public Order createOrder(
 ) {
     return orderService.create(request);
 }</code></pre>
-                    </div>
                 </div>
+            </div>
 
-                <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200"
-                >
-                    <h3
-                            class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2"
-                    >
-                        <i class="fa-solid fa-key text-yellow-600"></i> Composite Keys
-                    </h3>
-                    <div class="rounded-lg overflow-x-auto text-xs md:text-sm">
-                      <pre><code class="language-java">@RateLimit(
-    // Combine Tenant ID and User ID
+            <div class="usage-card fade-up">
+                <div class="usage-card-header">
+                    <i class="usage-card-icon fa-solid fa-building" style="color: #fbbf24;"></i>
+                    <h3 class="usage-card-title">Multi-Tenant Apps</h3>
+                </div>
+                <p class="usage-card-desc">
+                    Combine tenant + user for SaaS-style fair usage limits.
+                </p>
+                <div class="code-block">
+                        <pre><code class="language-java">@RateLimit(
     key = "#tenant.id + ':' + #user.id",
     requests = 50,
     window = 60
 )
 public void tenantAction() { ... }</code></pre>
-                    </div>
-                    <p class="mt-4 text-sm text-slate-500">
-                        Supports complex key generation logic directly in the annotation.
-                    </p>
                 </div>
+            </div>
 
-                <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-2"
-                >
-                    <h3
-                            class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2"
-                    >
-                        <i class="fa-solid fa-layer-group text-blue-600"></i> Tiered
-                        Limiting (Burst + Average)
-                    </h3>
-                    <p class="text-sm text-slate-600 mb-4">
-                        Apply multiple limits to a single endpoint to handle bursts while
-                        maintaining long-term quotas.
-                    </p>
-                    <div class="rounded-lg overflow-x-auto text-xs md:text-sm">
-                      <pre><code class="language-java">@RateLimits({
-    @RateLimit(name = "burst", requests = 10, window = 1),       // 10 req/sec
-    @RateLimit(name = "hourly", requests = 1000, window = 3600)  // 1000 req/hour
+            <div class="usage-card full-width fade-up">
+                <div class="usage-card-header">
+                    <i class="usage-card-icon fa-solid fa-layer-group" style="color: #38bdf8;"></i>
+                    <h3 class="usage-card-title">Burst Protection + Quotas</h3>
+                </div>
+                <p class="usage-card-desc">
+                    Stack multiple limits: prevent sudden spikes AND enforce long-term quotas.
+                </p>
+                <div class="code-block">
+                        <pre><code class="language-java">@RateLimits({
+    @RateLimit(name = "burst", requests = 10, window = 1),       // 10 req/sec max
+    @RateLimit(name = "hourly", requests = 1000, window = 3600)  // 1000 req/hour quota
 })
 @GetMapping("/api/resource")
 public Resource getResource() {
     return resourceService.fetch();
 }</code></pre>
-                    </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section class="py-12 md:py-16 bg-slate-900 text-slate-300">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div>
-                    <h3 class="text-xl font-bold text-white mb-4">
-                        <i class="fa-solid fa-sliders mr-2"></i>Configuration
-                    </h3>
-                    <p class="mb-4 text-sm">
-                        Configure compiler modes and caching strategies via YAML.
-                    </p>
-                    <div class="rounded-lg overflow-x-auto border border-slate-700 text-xs md:text-sm">
-                      <pre><code class="language-yaml">ratelimit:
+<!-- Config Section -->
+<section class="config">
+    <div class="container">
+        <div class="config-grid">
+            <div class="config-card fade-up">
+                <h3>
+                    <i class="fa-solid fa-sliders" style="color: var(--accent);"></i>
+                    Optional Tuning
+                </h3>
+                <p>Works out of the box. Fine-tune when you need to.</p>
+                <div class="code-block">
+                        <pre><code class="language-yaml">ratelimit:
   enabled: true
+  storage: redis          # or: caffeine
   spel:
     compiler-mode: IMMEDIATE
     cache-size: 1000</code></pre>
-                    </div>
                 </div>
+            </div>
 
-                <div>
-                    <h3 class="text-xl font-bold text-white mb-4">
-                        <i class="fa-solid fa-chart-pie mr-2"></i>Prometheus Metrics
-                    </h3>
-                    <p class="mb-4 text-sm">
-                        Monitor denial rates and throughput seamlessly.
-                    </p>
-                    <div class="rounded-lg overflow-x-auto border border-slate-700 text-xs md:text-sm">
-                      <pre><code class="language-bash"># Denial rate
-rate(ratelimit_requests_total{result="denied"}[5m])
+            <div class="config-card fade-up">
+                <h3>
+                    <i class="fa-solid fa-chart-pie" style="color: var(--accent);"></i>
+                    Built-in Metrics
+                </h3>
+                <p>Prometheus-ready. Alert on abuse before it becomes a problem.</p>
+                <div class="code-block">
+                        <pre><code class="language-bash"># Who's getting blocked?
+rate(ratelimit_denied_total[5m])
 
-# Success rate
-sum(rate(ratelimit_requests_total{result="allowed"}[5m]))</code></pre>
-                    </div>
+# How much traffic is allowed?
+sum(rate(ratelimit_allowed_total[5m]))</code></pre>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <footer class="bg-white py-8 md:py-12 border-t border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-slate-900 font-semibold mb-2">
-                Built for high-performance engineering.
-            </p>
-            <p class="text-slate-500 text-sm mb-6">
-                Released under Apache License 2.0
-            </p>
-            <div class="flex justify-center space-x-6">
-                <a href="#" class="text-slate-400 hover:text-slate-600"
-                ><i class="fa-brands fa-github text-2xl"></i
-                ></a>
-                <a href="#" class="text-slate-400 hover:text-slate-600"
-                ><i class="fa-brands fa-twitter text-2xl"></i
-                ></a>
-            </div>
+<!-- CTA Section -->
+<section class="cta-section" style="padding: 100px 0; text-align: center; background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);">
+    <div class="container">
+        <h2 class="section-title reveal-text" style="margin-bottom: 16px;">Ready to Protect Your APIs?</h2>
+        <p class="section-subtitle fade-up" style="margin-bottom: 40px; max-width: 500px; margin-left: auto; margin-right: auto;">
+            Join developers who ship faster without worrying about abuse.
+        </p>
+        <div class="hero-actions fade-up" style="justify-content: center;">
+            <a href="#quickstart" class="btn btn-primary">
+                <i class="fa-solid fa-rocket"></i> Get Started Free
+            </a>
+            <a href="https://github.com/manojcchoudhary/ratelimit-library" target="_blank" class="btn btn-secondary">
+                <i class="fa-brands fa-github"></i> View Source Code
+            </a>
         </div>
-    </footer>
-</div><!-- End Main Wrapper -->
+    </div>
+</section>
 
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-logo">Rate Limit <span>Library</span></div>
+            <p class="footer-tagline">Open source. Production ready. Community driven.</p>
+            <div class="footer-links">
+                <a href="https://github.com/manojcchoudhary/ratelimit-library" target="_blank" title="GitHub">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/issues" target="_blank" title="Report Issues">
+                    <i class="fa-solid fa-bug"></i>
+                </a>
+                <a href="https://github.com/manojcchoudhary/ratelimit-library/discussions" target="_blank" title="Discussions">
+                    <i class="fa-solid fa-comments"></i>
+                </a>
+            </div>
+            <p class="footer-copy">Apache License 2.0 &middot; Made with care for the Java community</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
 
 <script>
-    // Tab Switching Logic
-    function switchTab(framework) {
-        const springBtn = document.getElementById("tab-spring");
-        const quarkusBtn = document.getElementById("tab-quarkus");
-        const springContent = document.getElementById("content-spring");
-        const quarkusContent = document.getElementById("content-quarkus");
+    // ========================================================
+    // Initialize GSAP and Plugins
+    // ========================================================
+    gsap.registerPlugin(ScrollTrigger);
 
-        if (framework === "spring") {
-            springBtn.classList.add("text-brand-600", "border-brand-600");
-            springBtn.classList.remove("text-slate-500", "border-transparent");
+    // Add class to enable CSS animation states
+    document.body.classList.add('gsap-init');
 
-            quarkusBtn.classList.add("text-slate-500", "border-transparent");
-            quarkusBtn.classList.remove("text-brand-600", "border-brand-600");
+    // ========================================================
+    // Lenis Smooth Scroll
+    // ========================================================
+    let lenis;
+    try {
+        lenis = new Lenis({
+            lerp: 0.1,
+            smooth: true,
+        });
 
-            springContent.classList.remove("hidden");
-            quarkusContent.classList.add("hidden");
-        } else {
-            quarkusBtn.classList.add("text-brand-600", "border-brand-600");
-            quarkusBtn.classList.remove("text-slate-500", "border-transparent");
+        lenis.on('scroll', ScrollTrigger.update);
 
-            springBtn.classList.add("text-slate-500", "border-transparent");
-            springBtn.classList.remove("text-brand-600", "border-brand-600");
+        gsap.ticker.add((time) => {
+            lenis.raf(time * 1000);
+        });
 
-            quarkusContent.classList.remove("hidden");
-            springContent.classList.add("hidden");
-        }
+        gsap.ticker.lagSmoothing(0);
+    } catch (e) {
+        console.warn('Lenis not loaded, using native scroll');
     }
 
-    // Mobile Menu Logic
-    const mobileMenuBtn = document.getElementById("mobile-menu-btn");
-    const mobileMenu = document.getElementById("mobile-menu");
+    // ========================================================
+    // Navigation Scroll Effect
+    // ========================================================
+    const nav = document.getElementById('nav');
 
-    mobileMenuBtn.addEventListener("click", () => {
-        mobileMenu.classList.toggle("hidden");
+    ScrollTrigger.create({
+        start: 'top -80',
+        end: 99999,
+        toggleClass: { className: 'scrolled', targets: nav }
     });
 
-    function toggleMenu() {
-        mobileMenu.classList.add("hidden");
+    // ========================================================
+    // Text Reveal Animation (Typewriter Effect)
+    // ========================================================
+    document.querySelectorAll('.reveal-text').forEach((element) => {
+        try {
+            if (typeof SplitType !== 'undefined') {
+                const split = new SplitType(element, { types: 'chars' });
+
+                // Set initial state
+                gsap.set(split.chars, { opacity: 0, y: 20 });
+
+                gsap.to(split.chars, {
+                    opacity: 1,
+                    y: 0,
+                    stagger: 0.03,
+                    duration: 0.6,
+                    ease: 'power2.out',
+                    scrollTrigger: {
+                        trigger: element,
+                        start: 'top 85%',
+                        toggleActions: 'play none none none'
+                    }
+                });
+            } else {
+                // Fallback: simple fade in
+                gsap.from(element, {
+                    opacity: 0,
+                    y: 30,
+                    duration: 0.8,
+                    ease: 'power2.out'
+                });
+            }
+        } catch (e) {
+            // Ensure text is visible if animation fails
+            element.style.opacity = '1';
+            console.warn('Text animation failed:', e);
+        }
+    });
+
+    // ========================================================
+    // Fade Up Animation
+    // ========================================================
+    gsap.utils.toArray('.fade-up').forEach((element) => {
+        // Set initial state
+        gsap.set(element, { opacity: 0, y: 40 });
+
+        gsap.to(element, {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            ease: 'power2.out',
+            scrollTrigger: {
+                trigger: element,
+                start: 'top 85%',
+                toggleActions: 'play none none none'
+            }
+        });
+    });
+
+    // ========================================================
+    // Counter Animation
+    // ========================================================
+    document.querySelectorAll('.counter').forEach((counter) => {
+        const target = parseInt(counter.dataset.target);
+
+        ScrollTrigger.create({
+            trigger: counter,
+            start: 'top 80%',
+            onEnter: () => {
+                gsap.to(counter, {
+                    duration: 2,
+                    ease: 'power2.out',
+                    onUpdate: function() {
+                        const current = Math.round(target * this.progress());
+                        counter.textContent = current.toLocaleString();
+                    }
+                });
+            },
+            once: true
+        });
+    });
+
+    // ========================================================
+    // Feature Cards Stagger Animation
+    // ========================================================
+    gsap.utils.toArray('.feature-card').forEach((card, index) => {
+        gsap.to(card, {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            delay: index * 0.1,
+            ease: 'power2.out',
+            scrollTrigger: {
+                trigger: card,
+                start: 'top 85%',
+                toggleActions: 'play none none none'
+            }
+        });
+    });
+
+    // ========================================================
+    // Tab Switching
+    // ========================================================
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tab).classList.add('active');
+
+            // Animate new content
+            const newContent = document.getElementById(tab);
+            gsap.from(newContent.querySelectorAll('.code-block'), {
+                opacity: 0,
+                y: 20,
+                duration: 0.4,
+                stagger: 0.1,
+                ease: 'power2.out'
+            });
+        });
+    });
+
+    // ========================================================
+    // Copy Code Function
+    // ========================================================
+    function copyCode(button) {
+        const codeBlock = button.closest('.code-block');
+        const code = codeBlock.querySelector('code').textContent;
+
+        navigator.clipboard.writeText(code).then(() => {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+            button.style.color = '#4ade80';
+
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.color = '';
+            }, 2000);
+        });
     }
+
+    // ========================================================
+    // Button Hover Animation
+    // ========================================================
+    document.querySelectorAll('.btn').forEach((btn) => {
+        btn.addEventListener('mouseenter', () => {
+            gsap.to(btn, {
+                scale: 1.02,
+                duration: 0.3,
+                ease: 'power2.out'
+            });
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            gsap.to(btn, {
+                scale: 1,
+                duration: 0.3,
+                ease: 'power2.out'
+            });
+        });
+    });
+
+    // ========================================================
+    // Feature Card Hover Animation
+    // ========================================================
+    document.querySelectorAll('.feature-card').forEach((card) => {
+        const icon = card.querySelector('.feature-icon');
+
+        card.addEventListener('mouseenter', () => {
+            gsap.to(icon, {
+                scale: 1.1,
+                rotation: 5,
+                duration: 0.4,
+                ease: 'power2.out'
+            });
+        });
+
+        card.addEventListener('mouseleave', () => {
+            gsap.to(icon, {
+                scale: 1,
+                rotation: 0,
+                duration: 0.4,
+                ease: 'power2.out'
+            });
+        });
+    });
+
+    // ========================================================
+    // Hero Animation on Load
+    // ========================================================
+    // Set initial states for hero elements
+    gsap.set('.nav', { y: -100, opacity: 0 });
+    gsap.set('.hero-badge', { y: 30, opacity: 0 });
+    gsap.set('.hero-title', { y: 50, opacity: 0 });
+    gsap.set('.hero-subtitle', { y: 30, opacity: 0 });
+    gsap.set('.hero-actions', { y: 30, opacity: 0 });
+    gsap.set('.hero-badges', { y: 20, opacity: 0 });
+    gsap.set('.hero-visualization', { y: 40, opacity: 0 });
+
+    window.addEventListener('load', () => {
+        const tl = gsap.timeline();
+
+        tl.to('.nav', {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: 'power2.out'
+        })
+            .to('.hero-badge', {
+                y: 0,
+                opacity: 1,
+                duration: 0.6,
+                ease: 'power2.out'
+            }, '-=0.4')
+            .to('.hero-title', {
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                ease: 'power2.out'
+            }, '-=0.3')
+            .to('.hero-subtitle', {
+                y: 0,
+                opacity: 1,
+                duration: 0.6,
+                ease: 'power2.out'
+            }, '-=0.4')
+            .to('.hero-actions', {
+                y: 0,
+                opacity: 1,
+                duration: 0.6,
+                ease: 'power2.out'
+            }, '-=0.3')
+            .to('.hero-badges', {
+                y: 0,
+                opacity: 1,
+                duration: 0.5,
+                ease: 'power2.out'
+            }, '-=0.2')
+            .to('.hero-visualization', {
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                ease: 'power2.out'
+            }, '-=0.3');
+    });
+
+    // ========================================================
+    // Parallax Effect on Hero Glow
+    // ========================================================
+    gsap.to('.hero-glow', {
+        y: 200,
+        ease: 'none',
+        scrollTrigger: {
+            trigger: '.hero',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 1
+        }
+    });
+
+    // ========================================================
+    // Architecture Table Row Animation
+    // ========================================================
+    gsap.utils.toArray('.architecture-table tbody tr').forEach((row, index) => {
+        gsap.from(row, {
+            opacity: 0,
+            x: -30,
+            duration: 0.5,
+            delay: index * 0.1,
+            ease: 'power2.out',
+            scrollTrigger: {
+                trigger: row,
+                start: 'top 90%',
+                toggleActions: 'play none none none'
+            }
+        });
+    });
+
+    // ========================================================
+    // Mobile Menu Toggle
+    // ========================================================
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    // Add mobile menu functionality here if needed
+
 </script>
 </body>
 </html>
