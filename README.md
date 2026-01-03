@@ -46,7 +46,7 @@ A production-grade, high-performance rate limiting library for Java applications
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-adapter-spring</artifactId>
-    <version>0.1.1-alpha</version>
+    <version>0.1.0-beta.1</version>
 </dependency>
 ```
 
@@ -72,7 +72,7 @@ That's it! The library auto-configures itself with sensible defaults.
 <dependency>
     <groupId>com.lycosoft</groupId>
     <artifactId>rl-adapter-quarkus</artifactId>
-    <version>0.1.1-alpha</version>
+    <version>0.1.0-beta.1</version>
 </dependency>
 ```
 
