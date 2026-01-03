@@ -704,12 +704,6 @@
             gap: 40px;
         }
 
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
         .stat-card {
             text-align: center;
         }
@@ -898,12 +892,6 @@
             gap: 24px;
         }
 
-        @media (max-width: 1024px) {
-            .usage-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
         .usage-card {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
@@ -947,12 +935,6 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 40px;
-        }
-
-        @media (max-width: 768px) {
-            .config-grid {
-                grid-template-columns: 1fr;
-            }
         }
 
         .config-card h3 {
@@ -1052,10 +1034,106 @@
             color: var(--text-primary);
             font-size: 24px;
             cursor: pointer;
+            padding: 8px;
+            z-index: 101;
         }
 
-        @media (max-width: 768px) {
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            z-index: 99;
+            padding: 100px 24px 40px;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        .mobile-menu a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: 500;
+            padding: 12px 24px;
+            transition: color 0.3s ease;
+        }
+
+        .mobile-menu a:hover {
+            color: var(--accent);
+        }
+
+        /* ========================================================
+           RESPONSIVE BREAKPOINTS
+           ======================================================== */
+
+        /* Large screens (< 1280px) */
+        @media (max-width: 1280px) {
+            .container {
+                padding: 0 32px;
+            }
+
+            .stat-number {
+                font-size: 40px;
+            }
+        }
+
+        /* Medium screens (< 1024px) */
+        @media (max-width: 1024px) {
             .nav-links {
+                gap: 24px;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 32px;
+            }
+
+            .stat-value {
+                font-size: 44px;
+            }
+
+            .usage-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .config-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .traffic-flow {
+                max-width: 100%;
+            }
+
+            .hero-visualization {
+                margin-top: 40px;
+            }
+        }
+
+        /* Tablet screens (< 768px) */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .nav-cta .btn {
                 display: none;
             }
 
@@ -1063,16 +1141,527 @@
                 display: block;
             }
 
-            .features-grid {
-                grid-template-columns: 1fr;
+            .hero {
+                padding: 100px 0 60px;
+                min-height: auto;
             }
 
             .hero-title {
-                font-size: 36px;
+                font-size: 32px;
+                margin-bottom: 20px;
             }
 
             .hero-subtitle {
                 font-size: 16px;
+                margin-bottom: 32px;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .hero-actions .btn {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+
+            .hero-badges {
+                gap: 8px;
+            }
+
+            .hero-badges img {
+                height: 20px;
+            }
+
+            .hero-visualization {
+                margin-top: 32px;
+                height: 160px;
+            }
+
+            .traffic-flow {
+                height: 140px;
+            }
+
+            .gatekeeper {
+                width: 60px;
+                height: 80px;
+            }
+
+            .gate-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+
+            .gate-label {
+                font-size: 9px;
+            }
+
+            .flow-label {
+                font-size: 9px;
+            }
+
+            .traffic-dot {
+                width: 8px;
+                height: 8px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .features {
+                padding: 80px 0;
+            }
+
+            .section-header {
+                margin-bottom: 48px;
+            }
+
+            .section-title {
+                font-size: 28px;
+            }
+
+            .section-subtitle {
+                font-size: 16px;
+            }
+
+            .feature-card {
+                padding: 24px;
+            }
+
+            .feature-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+
+            .feature-title {
+                font-size: 18px;
+            }
+
+            .feature-desc {
+                font-size: 14px;
+            }
+
+            .stats-section {
+                padding: 60px 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+            }
+
+            .stat-value {
+                font-size: 36px;
+            }
+
+            .stat-value .unit {
+                font-size: 20px;
+            }
+
+            .stat-description {
+                font-size: 11px;
+            }
+
+            .stats-marquee {
+                padding: 40px 0;
+            }
+
+            .marquee-track {
+                gap: 40px;
+            }
+
+            .stat-item .stat-number {
+                font-size: 32px;
+            }
+
+            .stat-item .stat-label {
+                font-size: 11px;
+            }
+
+            .architecture {
+                padding: 80px 0;
+            }
+
+            .architecture-table {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .architecture-table table {
+                min-width: 600px;
+            }
+
+            .architecture-table th,
+            .architecture-table td {
+                padding: 14px 16px;
+                font-size: 13px;
+            }
+
+            .quickstart {
+                padding: 80px 0;
+            }
+
+            .tabs {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .tab-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .code-block pre {
+                padding: 16px;
+            }
+
+            .code-block code {
+                font-size: 12px;
+            }
+
+            .usage {
+                padding: 80px 0;
+            }
+
+            .usage-card {
+                padding: 24px;
+            }
+
+            .usage-card-title {
+                font-size: 16px;
+            }
+
+            .config {
+                padding: 60px 0;
+            }
+
+            .config-card h3 {
+                font-size: 18px;
+            }
+
+            .cta-section {
+                padding: 60px 0 !important;
+            }
+
+            .footer {
+                padding: 60px 0 32px;
+            }
+
+            .footer-logo {
+                font-size: 20px;
+            }
+
+            .footer-links {
+                gap: 20px;
+            }
+
+            .footer-links a {
+                font-size: 20px;
+            }
+        }
+
+        /* Small screens (< 480px) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .nav {
+                padding: 16px 0;
+            }
+
+            .nav-logo-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .nav-logo-text {
+                font-size: 16px;
+            }
+
+            .nav-github {
+                font-size: 20px;
+            }
+
+            .hero {
+                padding: 90px 0 48px;
+            }
+
+            .hero-badge {
+                padding: 6px 12px;
+                font-size: 11px;
+                margin-bottom: 24px;
+            }
+
+            .hero-title {
+                font-size: 26px;
+                line-height: 1.2;
+            }
+
+            .hero-subtitle {
+                font-size: 14px;
+                line-height: 1.6;
+            }
+
+            .hero-badges img {
+                height: 18px;
+            }
+
+            .hero-visualization {
+                height: 140px;
+                margin-top: 24px;
+            }
+
+            .traffic-flow {
+                height: 120px;
+            }
+
+            .gatekeeper {
+                width: 50px;
+                height: 70px;
+            }
+
+            .gate-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+                border-radius: 8px;
+            }
+
+            .gate-label {
+                font-size: 8px;
+                margin-top: 6px;
+            }
+
+            .flow-label {
+                font-size: 8px;
+            }
+
+            .flow-label.denied-label {
+                right: 25%;
+            }
+
+            .traffic-dot {
+                width: 6px;
+                height: 6px;
+            }
+
+            .section-label {
+                font-size: 11px;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+
+            .section-subtitle {
+                font-size: 14px;
+            }
+
+            .features {
+                padding: 60px 0;
+            }
+
+            .section-header {
+                margin-bottom: 40px;
+            }
+
+            .feature-card {
+                padding: 20px;
+            }
+
+            .feature-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+                margin-bottom: 16px;
+            }
+
+            .stats-section {
+                padding: 48px 0;
+            }
+
+            .stats-grid {
+                gap: 20px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+            }
+
+            .stat-value .unit {
+                font-size: 16px;
+            }
+
+            .stat-description {
+                font-size: 10px;
+            }
+
+            .stats-marquee {
+                padding: 32px 0;
+            }
+
+            .stat-item .stat-number {
+                font-size: 24px;
+            }
+
+            .stat-item .stat-label {
+                font-size: 10px;
+            }
+
+            .architecture {
+                padding: 60px 0;
+            }
+
+            .quickstart {
+                padding: 60px 0;
+            }
+
+            .tabs {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .tab-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .code-header {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-start;
+            }
+
+            .code-copy {
+                align-self: flex-end;
+            }
+
+            .code-block pre {
+                padding: 14px;
+            }
+
+            .code-block code {
+                font-size: 11px;
+            }
+
+            .usage {
+                padding: 60px 0;
+            }
+
+            .usage-card {
+                padding: 20px;
+            }
+
+            .usage-card-header {
+                margin-bottom: 16px;
+            }
+
+            .config {
+                padding: 48px 0;
+            }
+
+            .config-card h3 {
+                font-size: 16px;
+            }
+
+            .config-card p {
+                font-size: 13px;
+            }
+
+            .cta-section {
+                padding: 48px 0 !important;
+            }
+
+            .cta-section .section-title {
+                font-size: 22px;
+            }
+
+            .cta-section .hero-actions {
+                margin-top: 32px;
+            }
+
+            .footer {
+                padding: 48px 0 24px;
+            }
+
+            .footer-tagline {
+                font-size: 14px;
+            }
+
+            .footer-copy {
+                font-size: 11px;
+            }
+        }
+
+        /* Extra small screens (< 360px) */
+        @media (max-width: 360px) {
+            .hero-title {
+                font-size: 22px;
+            }
+
+            .hero-subtitle {
+                font-size: 13px;
+            }
+
+            .btn {
+                padding: 10px 18px;
+                font-size: 13px;
+            }
+
+            .section-title {
+                font-size: 20px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .stat-value .unit {
+                font-size: 14px;
+            }
+        }
+
+        /* Landscape mode adjustments for phones */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .hero {
+                min-height: auto;
+                padding: 80px 0 40px;
+            }
+
+            .hero-visualization {
+                display: none;
+            }
+        }
+
+        /* High DPI / Retina displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .hero-grid {
+                background-size: 40px 40px;
+            }
+        }
+
+        /* Reduce motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .marquee-track {
+                animation: none;
+            }
+
+            .lenis.lenis-smooth {
+                scroll-behavior: smooth !important;
             }
         }
 
@@ -1137,12 +1726,24 @@
                 <a href="#quickstart" class="btn btn-primary">Get Started</a>
             </div>
 
-            <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
         </div>
     </div>
 </nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobile-menu">
+    <a href="#features" class="mobile-menu-link">Features</a>
+    <a href="#architecture" class="mobile-menu-link">Architecture</a>
+    <a href="#quickstart" class="mobile-menu-link">Quick Start</a>
+    <a href="#usage" class="mobile-menu-link">Examples</a>
+    <a href="https://github.com/manojcchoudhary/ratelimit-library" target="_blank" class="mobile-menu-link">
+        <i class="fa-brands fa-github"></i> GitHub
+    </a>
+    <a href="#quickstart" class="btn btn-primary" style="margin-top: 16px;">Get Started</a>
+</div>
 
 <!-- Hero Section -->
 <section class="hero">
@@ -2046,7 +2647,45 @@ sum(rate(ratelimit_allowed_total[5m]))</code></pre>
     // Mobile Menu Toggle
     // ========================================================
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-    // Add mobile menu functionality here if needed
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileMenuLinks = document.querySelectorAll('.mobile-menu a');
+    let isMenuOpen = false;
+
+    function toggleMobileMenu() {
+        isMenuOpen = !isMenuOpen;
+        mobileMenu.classList.toggle('active', isMenuOpen);
+        mobileMenuBtn.innerHTML = isMenuOpen
+            ? '<i class="fa-solid fa-xmark"></i>'
+            : '<i class="fa-solid fa-bars"></i>';
+
+        // Prevent body scroll when menu is open
+        document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+    }
+
+    mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+
+    // Close menu when clicking a link
+    mobileMenuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (isMenuOpen) {
+                toggleMobileMenu();
+            }
+        });
+    });
+
+    // Close menu on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isMenuOpen) {
+            toggleMobileMenu();
+        }
+    });
+
+    // Close menu when window is resized above mobile breakpoint
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && isMenuOpen) {
+            toggleMobileMenu();
+        }
+    });
 
 </script>
 </body>
